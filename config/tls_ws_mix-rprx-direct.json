@@ -73,7 +73,7 @@
       },
       "streamSettings": {
           "network": "ws",
-          "security": "none",
+          "security": "tls",
           "wsSettings": {
               "acceptProxyProtocol": true,
               "path": "xx"
