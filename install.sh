@@ -382,7 +382,7 @@ function configure_xray_ws() {
 
 function xray_install() {
   print_ok "安装 Xray"
-  curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- install
+  curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh | bash -s -- install
   judge "Xray 安装"
 
   # 用于生成 Xray 的导入链接
@@ -749,7 +749,7 @@ menu() {
     ;;
   14)
     if [[ ${shell_mode} == "ws" ]]; then
-      read -rp "请输入路径(示例：/wulabing/ 要求两侧都包含 /):" WS_PATH
+      read -rp "请输入路径(示例：/aixohub/ 要求两侧都包含 /):" WS_PATH
       modify_fallback_ws
       modify_ws
       restart_all
@@ -785,11 +785,11 @@ menu() {
     xray_uninstall
     ;;
   34)
-    bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" - install
+    bash -c "$(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)" - install
     restart_all
     ;;
   35)
-    bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" - install --beta
+    bash -c "$(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)" - install --beta
     restart_all
     ;;
   36)
