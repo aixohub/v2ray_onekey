@@ -29,12 +29,12 @@ ERROR="${Red}[ERROR]${Font}"
 # 变量
 shell_version="1.3.11"
 github_branch="main"
-xray_conf_dir="/usr/local/etc/xray"
+xray_conf_dir="/usr/local/etc/v2ray"
 website_dir="/www/xray_web/"
-xray_access_log="/var/log/xray/access.log"
-xray_error_log="/var/log/xray/error.log"
-cert_dir="/usr/local/etc/xray"
-domain_tmp_dir="/usr/local/etc/xray"
+xray_access_log="/var/log/v2ray/access.log"
+xray_error_log="/var/log/v2ray/error.log"
+cert_dir="/usr/local/etc/v2ray"
+domain_tmp_dir="/usr/local/etc/v2ray"
 cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
 
