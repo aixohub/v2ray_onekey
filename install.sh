@@ -381,9 +381,9 @@ function configure_xray_ws() {
 }
 
 function xray_install() {
-  print_ok "安装 Xray"
-  curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh | bash -s -- install
-  judge "Xray 安装"
+  print_ok "安装 v2ray"
+  bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)
+  judge "v2ray 安装"
 
   # 用于生成 Xray 的导入链接
   echo $domain >$domain_tmp_dir/domain
