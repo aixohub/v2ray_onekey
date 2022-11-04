@@ -1,7 +1,7 @@
 {
   "log": {
-    "access": "/var/log/xray/access.log",
-    "error": "/var/log/xray/error.log",
+    "access": "/var/log/v2ray/access.log",
+    "error": "/var/log/v2ray/error.log",
     "loglevel": "warning"
   },
   "inbounds": [
@@ -26,11 +26,6 @@
             "dest": 60001,
             "alpn": "h2",
             "xver": 1
-          },
-          {
-            "dest": 60002,
-            "path": "/wulabing",
-            "xver": 1
           }
         ]
       },
@@ -41,12 +36,12 @@
           "minVersion": "1.2",
           "certificates": [
             {
-              "certificateFile": "/usr/local/etc/xray/self_signed_cert.pem",
-              "keyFile": "/usr/local/etc/xray/self_signed_key.pem"
+              "certificateFile": "/usr/local/etc/v2ray/self_signed_cert.pem",
+              "keyFile": "/usr/local/etc/v2ray/self_signed_key.pem"
             },
             {
-              "certificateFile": "/ssl/xray.crt",
-              "keyFile": "/ssl/xray.key"
+              "certificateFile": "/ssl/v2ray.crt",
+              "keyFile": "/ssl/v2ray.key"
             }
           ]
         }
@@ -58,29 +53,8 @@
           "tls"
         ]
       }
-    },
-    {
-      "port": 60002,
-      "listen": "127.0.0.1",
-      "protocol": "vless",
-      "settings": {
-          "clients": [
-              {
-                  "id": "xx"
-              }
-          ],
-          "decryption": "none"
-      },
-      "streamSettings": {
-          "network": "ws",
-          "security": "none",
-          "wsSettings": {
-              "acceptProxyProtocol": true,
-              "path": "xx"
-          }
-      }
-  }
-],
+    }
+  ],
   "outbounds": [
     {
       "protocol": "freedom"

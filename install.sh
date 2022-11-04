@@ -366,13 +366,13 @@ function modify_port() {
 }
 
 function configure_v2ray() {
-  cd /usr/local/etc/v2ray && rm -f config.json && wget -O config.json https://raw.githubusercontent.com/aixohub/v2ray_onekey/${github_branch}/config/v2ray_xtls-rprx-direct.json
+  cd /usr/local/etc/v2ray && rm -f config.json && wget -O config.json https://raw.githubusercontent.com/aixohub/v2ray_onekey/${github_branch}/config/xtls-rprx-direct.json
   modify_UUID
   modify_port
 }
 
 function configure_v2ray_ws() {
-  cd /usr/local/etc/v2ray && rm -f config.json && wget -O config.json https://raw.githubusercontent.com/aixohub/v2ray_onekey/${github_branch}/config/v2ray_tls_ws_mix-rprx-direct.json
+  cd /usr/local/etc/v2ray && rm -f config.json && wget -O config.json https://raw.githubusercontent.com/aixohub/v2ray_onekey/${github_branch}/config/tls_ws_mix-rprx-direct.json
   modify_UUID
   modify_UUID_ws
   modify_port
