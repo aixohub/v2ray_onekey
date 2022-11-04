@@ -483,9 +483,9 @@ function ssl_judge_and_install() {
 
 function generate_certificate() {
   if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
-    signedcert=$(xray tls cert -domain="$local_ipv6" -name="$local_ipv6" -org="$local_ipv6" -expire=87600h)
+    signedcert=$(v2ray tls cert -domain="$local_ipv6" -name="$local_ipv6" -org="$local_ipv6" -expire=87600h)
   else
-    signedcert=$(xray tls cert -domain="$local_ipv4" -name="$local_ipv4" -org="$local_ipv4" -expire=87600h)
+    signedcert=$(v2ray tls cert -domain="$local_ipv4" -name="$local_ipv4" -org="$local_ipv4" -expire=87600h)
   fi
   echo $signedcert | jq '.certificate[]' | sed 's/\"//g' | tee $cert_dir/self_signed_cert.pem
   echo $signedcert | jq '.key[]' | sed 's/\"//g' >$cert_dir/self_signed_key.pem
@@ -543,7 +543,7 @@ function xray_uninstall() {
 function restart_all() {
   systemctl restart nginx
   judge "Nginx 启动"
-  systemctl restart xray
+  systemctl restart v2ray
   judge "Xray 启动"
 }
 
