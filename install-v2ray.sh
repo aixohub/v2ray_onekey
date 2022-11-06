@@ -3,7 +3,7 @@
 #====================================================
 #	System Request:Debian 9+/Ubuntu 18.04+/Centos 7+
 #	Author:	wulabing
-#	Dscription: Xray onekey Management
+#	Dscription: V2ray onekey Management
 #	email: admin@wulabing.com
 #====================================================
 
@@ -322,25 +322,25 @@ function modify_UUID() {
   [ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
   cat ${v2ray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"id"];"'${UUID}'")' >${v2ray_conf_dir}/config_tmp.json
   v2ray_tmp_config_file_check_and_use
-  judge "Xray TCP UUID 修改"
+  judge "V2ray TCP UUID 修改"
 }
 
 function modify_UUID_ws() {
   cat ${v2ray_conf_dir}/config.json | jq 'setpath(["inbounds",1,"settings","clients",0,"id"];"'${UUID}'")' >${v2ray_conf_dir}/config_tmp.json
   v2ray_tmp_config_file_check_and_use
-  judge "Xray ws UUID 修改"
+  judge "V2ray ws UUID 修改"
 }
 
 function modify_fallback_ws() {
   cat ${v2ray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","fallbacks",2,"path"];"'${WS_PATH}'")' >${v2ray_conf_dir}/config_tmp.json
   v2ray_tmp_config_file_check_and_use
-  judge "Xray fallback_ws 修改"
+  judge "V2ray fallback_ws 修改"
 }
 
 function modify_ws() {
   cat ${v2ray_conf_dir}/config.json | jq 'setpath(["inbounds",1,"streamSettings","wsSettings","path"];"'${WS_PATH}'")' >${v2ray_conf_dir}/config_tmp.json
   v2ray_tmp_config_file_check_and_use
-  judge "Xray ws 修改"
+  judge "V2ray ws 修改"
 }
 
 function configure_nginx() {
@@ -363,7 +363,7 @@ function modify_port() {
   port_exist_check $PORT
   cat ${v2ray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"port"];'${PORT}')' >${v2ray_conf_dir}/config_tmp.json
   v2ray_tmp_config_file_check_and_use
-  judge "Xray 端口 修改"
+  judge "V2ray 端口 修改"
 }
 
 function configure_v2ray() {
@@ -386,7 +386,7 @@ function v2ray_install() {
   bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)
   judge "v2ray 安装"
 
-  # 用于生成 Xray 的导入链接
+  # 用于生成 V2ray 的导入链接
   echo $domain >$domain_tmp_dir/domain
   judge "域名记录"
 }
@@ -478,7 +478,7 @@ function ssl_judge_and_install() {
     acme
   fi
 
-  # Xray 默认以 nobody 用户运行，证书权限适配
+  # V2ray 默认以 nobody 用户运行，证书权限适配
   chown -R nobody.$cert_group /ssl/*
 }
 
@@ -513,7 +513,7 @@ function configure_web() {
 }
 
 function v2ray_uninstall() {
-  curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- remove --purge
+  curl -L https://github.com/XTLS/V2ray-install/raw/main/install-release.sh | bash -s -- remove --purge
   rm -rf $website_dir
   print_ok "是否卸载nginx [Y/N]?"
   read -r uninstall_nginx
@@ -545,7 +545,7 @@ function restart_all() {
   systemctl restart nginx
   judge "Nginx 启动"
   systemctl restart v2ray
-  judge "Xray 启动"
+  judge "V2ray 启动"
 }
 
 function vless_xtls-rprx-direct_link() {
@@ -573,7 +573,7 @@ function vless_xtls-rprx-direct_information() {
   FLOW=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].flow | tr -d '"')
   DOMAIN=$(cat ${domain_tmp_dir}/domain)
 
-  echo -e "${Red} Xray 配置信息 ${Font}"
+  echo -e "${Red} V2ray 配置信息 ${Font}"
   echo -e "${Red} 地址（address）:${Font}  $DOMAIN"
   echo -e "${Red} 端口（port）：${Font}  $PORT"
   echo -e "${Red} 用户 ID（UUID）：${Font} $UUID"
@@ -591,7 +591,7 @@ function ws_information() {
   WS_PATH=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.fallbacks[2].path | tr -d '"')
   DOMAIN=$(cat ${domain_tmp_dir}/domain)
 
-  echo -e "${Red} Xray 配置信息 ${Font}"
+  echo -e "${Red} V2ray 配置信息 ${Font}"
   echo -e "${Red} 地址（address）:${Font}  $DOMAIN"
   echo -e "${Red} 端口（port）：${Font}  $PORT"
   echo -e "${Red} 用户 ID（UUID）：${Font} $UUID"
@@ -697,15 +697,15 @@ function install_v2ray_ws() {
 menu() {
   update_sh
   shell_mode_check
-  echo -e "\t Xray 安装管理脚本 ${Red}[${shell_version}]${Font}"
-  echo -e "\t---authored by wulabing---"
-  echo -e "\thttps://github.com/wulabing\n"
+  echo -e "\t V2ray 安装管理脚本 ${Red}[${shell_version}]${Font}"
+  echo -e "\t---authored by aixohub---"
+  echo -e "\thttps://github.com/aixohub\n"
 
   echo -e "当前已安装版本：${shell_mode}"
   echo -e "—————————————— 安装向导 ——————————————"""
   echo -e "${Green}0.${Font}  升级 脚本"
-  echo -e "${Green}1.${Font}  安装 Xray (VLESS + TCP + XTLS / TLS + Nginx)"
-  echo -e "${Green}2.${Font}  安装 Xray (VLESS + TCP + XTLS / TLS + Nginx 及 VLESS + TCP + TLS + Nginx + WebSocket 回落并存模式)"
+  echo -e "${Green}1.${Font}  安装 V2ray (VLESS + TCP + XTLS / TLS + Nginx)"
+  echo -e "${Green}2.${Font}  安装 V2ray (VLESS + TCP + XTLS / TLS + Nginx 及 VLESS + TCP + TLS + Nginx + WebSocket 回落并存模式)"
   echo -e "—————————————— 配置变更 ——————————————"
   echo -e "${Green}11.${Font} 变更 UUID"
   echo -e "${Green}13.${Font} 变更 连接端口"
@@ -713,14 +713,14 @@ menu() {
   echo -e "—————————————— 查看信息 ——————————————"
   echo -e "${Green}21.${Font} 查看 实时访问日志"
   echo -e "${Green}22.${Font} 查看 实时错误日志"
-  echo -e "${Green}23.${Font} 查看 Xray 配置链接"
+  echo -e "${Green}23.${Font} 查看 V2ray 配置链接"
   #    echo -e "${Green}23.${Font}  查看 V2Ray 配置信息"
   echo -e "—————————————— 其他选项 ——————————————"
   echo -e "${Green}31.${Font} 安装 4 合 1 BBR、锐速安装脚本"
   echo -e "${Yellow}32.${Font} 安装 MTproxy （不推荐使用,请相关用户关闭或卸载）"
-  echo -e "${Green}33.${Font} 卸载 Xray"
-  echo -e "${Green}34.${Font} 更新 Xray-core"
-  echo -e "${Green}35.${Font} 安装 Xray-core 测试版 (Pre)"
+  echo -e "${Green}33.${Font} 卸载 V2ray"
+  echo -e "${Green}34.${Font} 更新 V2ray-core"
+  echo -e "${Green}35.${Font} 安装 V2ray-core 测试版 (Pre)"
   echo -e "${Green}36.${Font} 手动更新 SSL 证书"
   echo -e "${Green}40.${Font} 退出"
   read -rp "请输入数字：" menu_num

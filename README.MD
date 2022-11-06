@@ -85,9 +85,6 @@ Nginx 目录： `/etc/nginx`
 
 https://bandwagonhost.com/aff.php?aff=63939
 
-您可以使用我的 JustMySocks AFF 购买搬瓦工提供的代理
-
-https://justmysocks.net/members/aff.php?aff=17621
 
 您可以使用我的 DMIT AFF 购买 VPS
 
@@ -97,8 +94,6 @@ https://www.dmit.io/aff.php?aff=3957
 
 https://www.vultr.com/?ref=6881279
 
-您可以通过 USDT 支持我，感谢您的支持
-TRC20:TFannfnajNGYsMTuVDcXfZXXPbcaxAEffa
 
 
 ## Stargazers over time
