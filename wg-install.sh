@@ -293,10 +293,15 @@ function show_access_log() {
   [ -f ${wireguard_access_log} ] && tail -f ${wireguard_access_log} || echo -e "${RedBG}log 文件不存在${Font}"
 }
 
+function client_conf_information() {
+  echo -e "${Red} wireguard 配置信息 ${Font}"
+  echo -e "${Red}  $(cat /etc/wireguard/client.conf)  ${Font}  $DOMAIN"
+}
+
 function basic_information() {
+  systemctl enable wg-quick@wg0
   print_ok "wireguard 安装成功"
-  vless_xtls-rprx-direct_information
-  vless_xtls-rprx-direct_link
+  client_conf_information
 }
 
 function install_wireguard() {
