@@ -23,10 +23,10 @@ https://github.com/XTLS/Xray-core/issues/91
 
 支持配置方式
 
-- VLESS + TCP + TLS + Nginx + WebSocket
+- v2ray
 
 ```
-wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.com/aixohub/v2ray_onekey/main/install.sh" && chmod +x install.sh && bash install.sh
+wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.com/aixohub/v2ray_onekey/main/install-v2ray.sh" && chmod +x install.sh && bash install.sh
 ```
 
 
