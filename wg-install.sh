@@ -275,6 +275,7 @@ function restart_all() {
   else
     wg-quick down wg0
     wg-quick up wg0
+  fi
   judge "wireguard 启动"
 }
 
