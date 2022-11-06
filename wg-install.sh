@@ -271,7 +271,6 @@ function wireguard_uninstall() {
 function restart_all() {
   if [[ 0 -eq $(wg | grep -i -c "wg0") ]]; then
     wg-quick up wg0
-    print_ok "$1 端口未被占用"
   else
     wg-quick down wg0
     wg-quick up wg0
