@@ -183,7 +183,7 @@ function generate_key() {
   mkdir /etc/wireguard
   cd /etc/wireguard
   wg genkey | tee sprivatekey | wg pubkey > spublickey
-  wg genkey | tee cprivatekey | wg pubkey > cpublicke
+  wg genkey | tee cprivatekey | wg pubkey > cpublickey
   print_ok "生成密匙对成功"
 
   echo "[Interface]
