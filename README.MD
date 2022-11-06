@@ -29,16 +29,11 @@ https://github.com/XTLS/Xray-core/issues/91
 wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.com/aixohub/v2ray_onekey/main/install.sh" && chmod +x install.sh && bash install.sh
 ```
 
-### 安装/更新方式（Xray 前置）
 
-支持配置方式
-
-- VLESS + TCP + XTLS / TLS  + Nginx
-
-- VLESS + TCP + XTLS / TLS  + Nginx 及 VLESS + TCP + TLS + Nginx + WebSocket 回落并存模式
+### 安装/更新方式 wg
 
 ```
-wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.com/aixohub/Xray_onekey/main/install.sh" && chmod +x install.sh && bash install.sh
+wget -N --no-check-certificate -q -O wg-install.sh "https://raw.githubusercontent.com/aixohub/v2ray_onekey/main/wg-install.sh" && chmod +x wg-install.sh && bash wg-install.sh
 ```
 
 ### 安装/更新方式 wg
