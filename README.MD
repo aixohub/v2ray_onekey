@@ -36,11 +36,7 @@ wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.c
 wget -N --no-check-certificate -q -O wg-install.sh "https://raw.githubusercontent.com/aixohub/v2ray_onekey/main/wg-install.sh" && chmod +x wg-install.sh && bash wg-install.sh
 ```
 
-### 安装/更新方式 wg
 
-```
-wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.com/aixohub/Xray_onekey/main/wg-install.sh" && chmod +x wg-install.sh && bash wg-install.sh
-```
 
 
 ### 注意事项

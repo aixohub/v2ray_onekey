@@ -242,7 +242,7 @@ function wireguard_install() {
 
   if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
     ${INS} epel-release.noarch elrepo-release.noarch -y
-    ${INS} 
+    yum install --enablerepo=elrepo-kernel kmod-wireguard wireguard-tools -y
   elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 9 ]]; then
      apt install linux-headers-$(uname -r) -y
      echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable.list
