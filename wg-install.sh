@@ -185,11 +185,8 @@ function generate_key() {
   wg genkey | tee sprivatekey | wg pubkey > spublickey
   wg genkey | tee cprivatekey | wg pubkey > cpublicke
   print_ok "生成密匙对成功"
-}
 
-function generate_server_conf() {
-   cd /etc/wireguard
-   echo "[Interface]
+  echo "[Interface]
    # 服务器的私匙，对应客户端配置中的公匙（自动读取上面刚刚生成的密匙内容）
    PrivateKey = $(cat sprivatekey)
    # 本机的内网IP地址，一般默认即可，除非和你服务器或客户端设备本地网段冲突
@@ -212,12 +209,9 @@ function generate_server_conf() {
    PublicKey = $(cat cpublickey)
    # 该客户端账号的内网IP地址
    AllowedIPs = 10.0.0.2/32"|sed '/^#/d;/^\s*$/d' > wg0.conf
-   print_ok "生成密匙对成功"
-}
+   print_ok "生成服务端配置成功"
 
-function generate_client_conf() {
-   cd /etc/wireguard
-   echo "[Interface]
+    echo "[Interface]
    # 客户端的私匙，对应服务器配置中的客户端公匙（自动读取上面刚刚生成的密匙内容）
    PrivateKey = $(cat cprivatekey)
    # 客户端的内网IP地址
@@ -236,32 +230,10 @@ function generate_client_conf() {
    # 保持连接，如果客户端或服务端是 NAT 网络(比如国内大多数家庭宽带没有公网IP，都是NAT)，那么就需要添加这个参数定时链接服务端(单位：秒)，如果你的服务器和你本地都不是 NAT 网络，那么建议不使用该参数（设置为0，或客户端配置文件中删除这行）
    PersistentKeepalive = 25"|sed '/^#/d;/^\s*$/d' > client.conf
  
-   print_ok "生成密匙对成功"
-}
-
-function wireguard_install() {
-  print_ok "安装 wireguard"
-
-  if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
-    ${INS} epel-release.noarch elrepo-release.noarch -y
-    yum install --enablerepo=elrepo-kernel kmod-wireguard wireguard-tools -y
-  elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 9 ]]; then
-     apt install linux-headers-$(uname -r) -y
-     echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable.list
-     echo -e 'Package: *\nPin: release a=unstable\nPin-Priority: 150' > /etc/apt/preferences.d/limit-unstable
-     apt update
-     apt install wireguard resolvconf -y 
-  elif [[ "${ID}" == "ubuntu" && $(echo "${VERSION_ID}" | cut -d '.' -f1) -ge 18 ]]; then
-     apt update
-     apt install wireguard resolvconf -y
-     systemctl enable wg-quick@wg0 
-  else
-    print_error "当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内"
-    exit 1
-  fi
-  judge "wireguard 安装"
+   print_ok "生成客户端配置成功"
 
 }
+
 
 function configure_wireguard() {
   # 赋予配置文件夹权限
@@ -317,8 +289,6 @@ function install_wireguard() {
   port_exist_check 80
   wireguard_install
   generate_key
-  generate_server_conf
-  generate_client_conf
   configure_wireguard
 
   restart_all
@@ -333,7 +303,7 @@ menu() {
   echo -e "—————————————— 安装向导 ——————————————"""
   echo -e "${Green}0.${Font}  升级 脚本"
   echo -e "${Green}1.${Font}  安装 wireguard "
-  echo -e "${Green}1.${Font}  卸载 wireguard "
+  echo -e "${Green}2.${Font}  卸载 wireguard "
   echo -e "—————————————— 配置变更 ——————————————"
   echo -e "${Green}11.${Font} 启动 WireGuard"
   echo -e "${Green}12.${Font} 停止 WireGuard"
