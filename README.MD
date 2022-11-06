@@ -8,9 +8,6 @@
 
 ### 由于 xtls 存在被阻断的可能性，建议使用 Nginx 前置版本
 
-### Telegram 群组
-* Telegram 交流群：https://t.me/wulabing_v2ray 
-* Telegram 更新公告频道：https://t.me/wulabing_channel
 
 ### 准备工作
 * 准备一个域名，并将 A 记录添加好；
@@ -42,6 +39,12 @@ wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.c
 
 ```
 wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.com/aixohub/Xray_onekey/main/install.sh" && chmod +x install.sh && bash install.sh
+```
+
+### 安装/更新方式 wg
+
+```
+wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.com/aixohub/Xray_onekey/main/wg-install.sh" && chmod +x wg-install.sh && bash wg-install.sh
 ```
 
 

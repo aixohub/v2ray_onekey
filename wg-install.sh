@@ -115,6 +115,9 @@ function system_check() {
 
 function dependency_install() {
  
+  ${INS} wget
+  judge "安装 wget"
+
   ${INS} unzip
   judge "安装 unzip"
 
