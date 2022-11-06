@@ -115,6 +115,9 @@ function system_check() {
 
 function dependency_install() {
  
+  ${INS} lsof tar
+  judge "安装 lsof tar"
+
   ${INS} wget
   judge "安装 wget"
 
@@ -191,7 +194,8 @@ function generate_key() {
   echo -e "本机公网 IPv4 地址： ${local_ipv4}"
   echo -e "本机公网 IPv6 地址： ${local_ipv6}"
 
-  echo "[Interface]
+echo "
+[Interface]
 # 服务器的私匙，对应客户端配置中的公匙（自动读取上面刚刚生成的密匙内容）
 PrivateKey = $(cat sprivatekey)
 # 本机的内网IP地址，一般默认即可，除非和你服务器或客户端设备本地网段冲突
@@ -265,7 +269,12 @@ function wireguard_uninstall() {
 }
 
 function restart_all() {
-  wg-quick up wg0
+  if [[ 0 -eq $(wg | grep -i -c "wg0") ]]; then
+    wg-quick up wg0
+    print_ok "$1 端口未被占用"
+  else
+    wg-quick down wg0
+    wg-quick up wg0
   judge "wireguard 启动"
 }
 
@@ -276,7 +285,7 @@ function show_access_log() {
 
 function client_conf_information() {
   echo -e "${Red} wireguard 配置信息 ${Font}"
-  echo -e "${Red}  $(cat /etc/wireguard/client.conf)  ${Font}  $DOMAIN"
+  echo -e "${Red}  $(cat /etc/wireguard/client.conf)  ${Font}"
 }
 
 function basic_information() {
