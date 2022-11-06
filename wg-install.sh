@@ -188,6 +188,7 @@ function generate_key() {
 }
 
 function generate_server_conf() {
+   cd /etc/wireguard
    echo "[Interface]
    # 服务器的私匙，对应客户端配置中的公匙（自动读取上面刚刚生成的密匙内容）
    PrivateKey = $(cat sprivatekey)
@@ -215,6 +216,7 @@ function generate_server_conf() {
 }
 
 function generate_client_conf() {
+   cd /etc/wireguard
    echo "[Interface]
    # 客户端的私匙，对应服务器配置中的客户端公匙（自动读取上面刚刚生成的密匙内容）
    PrivateKey = $(cat cprivatekey)
@@ -252,7 +254,7 @@ function wireguard_install() {
   elif [[ "${ID}" == "ubuntu" && $(echo "${VERSION_ID}" | cut -d '.' -f1) -ge 18 ]]; then
      apt update
      apt install wireguard resolvconf -y
-
+     systemctl enable wg-quick@wg0 
   else
     print_error "当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内"
     exit 1
@@ -287,7 +289,7 @@ function wireguard_uninstall() {
 }
 
 function restart_all() {
-  systemctl restart wireguard
+  wg-quick up wg0
   judge "wireguard 启动"
 }
 
