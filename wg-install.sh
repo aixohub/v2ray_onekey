@@ -186,6 +186,11 @@ function generate_key() {
   wg genkey | tee cprivatekey | wg pubkey > cpublickey
   print_ok "生成密匙对成功"
 
+  local_ipv4=$(curl -s4m8 https://ip.gs)
+  local_ipv6=$(curl -s6m8 https://ip.gs)
+  echo -e "本机公网 IPv4 地址： ${local_ipv4}"
+  echo -e "本机公网 IPv6 地址： ${local_ipv6}"
+
   echo "[Interface]
    # 服务器的私匙，对应客户端配置中的公匙（自动读取上面刚刚生成的密匙内容）
    PrivateKey = $(cat sprivatekey)
@@ -224,7 +229,7 @@ function generate_key() {
    # 服务器的公匙，对应服务器的私匙（自动读取上面刚刚生成的密匙内容）
    PublicKey = $(cat spublickey)
    # 服务器地址和端口，下面的 X.X.X.X 记得更换为你的服务器公网IP，端口请填写服务端配置时的监听端口
-   Endpoint = X.X.X.X:443
+   Endpoint = $(local_ipv4):443
    # 因为是客户端，所以这个设置为全部IP段即可
    AllowedIPs = 0.0.0.0/0, ::0/0
    # 保持连接，如果客户端或服务端是 NAT 网络(比如国内大多数家庭宽带没有公网IP，都是NAT)，那么就需要添加这个参数定时链接服务端(单位：秒)，如果你的服务器和你本地都不是 NAT 网络，那么建议不使用该参数（设置为0，或客户端配置文件中删除这行）
