@@ -238,10 +238,33 @@ Endpoint = ${local_ipv4}:443
 AllowedIPs = 0.0.0.0/0, ::0/0
 # 保持连接，如果客户端或服务端是 NAT 网络(比如国内大多数家庭宽带没有公网IP，都是NAT)，那么就需要添加这个参数定时链接服务端(单位：秒)，如果你的服务器和你本地都不是 NAT 网络，那么建议不使用该参数（设置为0，或客户端配置文件中删除这行）
 PersistentKeepalive = 25"|sed '/^#/d;/^\s*$/d' > client.conf
-print_ok "生成客户端配置成功"
 
+print_ok "生成客户端配置成功"
 }
 
+function wireguard_install() {
+  print_ok "安装 wireguard"
+
+  if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
+    ${INS} epel-release.noarch elrepo-release.noarch -y
+    yum install --enablerepo=elrepo-kernel kmod-wireguard wireguard-tools -y
+  elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 9 ]]; then
+     apt install linux-headers-$(uname -r) -y
+     echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable.list
+     echo -e 'Package: *\nPin: release a=unstable\nPin-Priority: 150' > /etc/apt/preferences.d/limit-unstable
+     apt update
+     apt install wireguard resolvconf -y
+  elif [[ "${ID}" == "ubuntu" && $(echo "${VERSION_ID}" | cut -d '.' -f1) -ge 18 ]]; then
+     apt update
+     apt install wireguard resolvconf -y
+     systemctl enable wg-quick@wg0
+  else
+    print_error "当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内"
+    exit 1
+  fi
+  judge "wireguard 安装"
+
+}
 
 function configure_wireguard() {
   # 赋予配置文件夹权限
