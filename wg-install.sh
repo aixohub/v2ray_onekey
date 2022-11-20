@@ -244,7 +244,7 @@ function wireguard_install() {
   print_ok "安装 wireguard"
 
   if [[ "${ID}" == "centos" ]]; then
-    if [[ ${VERSION_ID} -ge 7  && ${VERSION_ID} -lt 9]]; then 
+    if [[ ${VERSION_ID} -ge 7  && ${VERSION_ID} -lt 9]]; then
         ${INS} epel-release.noarch elrepo-release.noarch -y
         yum install --enablerepo=elrepo-kernel kmod-wireguard wireguard-tools -y
     elif [[ ${VERSION_ID} -ge 9 ]]; then 
