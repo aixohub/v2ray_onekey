@@ -118,8 +118,6 @@ function dependency_install() {
   ${INS} lsof tar
   judge "安装 lsof tar"
 
-  ${INS} wget
-  judge "安装 wget"
 
   ${INS} unzip
   judge "安装 unzip"
@@ -245,9 +243,12 @@ print_ok "生成客户端配置成功"
 function wireguard_install() {
   print_ok "安装 wireguard"
 
-  if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
-    ${INS} epel-release.noarch elrepo-release.noarch -y
-    yum install --enablerepo=elrepo-kernel kmod-wireguard wireguard-tools -y
+  if [[ "${ID}" == "centos" ]]; then
+    if [[ ${VERSION_ID} -ge 7  && ${VERSION_ID} -lt 9]]; then 
+        ${INS} epel-release.noarch elrepo-release.noarch -y
+        yum install --enablerepo=elrepo-kernel kmod-wireguard wireguard-tools -y
+    elif [[ ${VERSION_ID} -ge 9 ]]; then 
+        dnf -y install wireguard-tools
   elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 9 ]]; then
      apt install linux-headers-$(uname -r) -y
      echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable.list
@@ -322,7 +323,6 @@ function install_wireguard() {
   system_check
   dependency_install
   basic_optimization
-  port_exist_check 80
   wireguard_install
   generate_key
   configure_wireguard
