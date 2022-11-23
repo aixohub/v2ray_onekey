@@ -2,9 +2,9 @@
 
 #====================================================
 #	System Request:Debian 9+/Ubuntu 18.04+/Centos 7+
-#	Author:	wulabing
+#	Author:	aixohub
 #	Dscription: V2ray onekey Management
-#	email: admin@wulabing.com
+#	email: admin@aixohub.com
 #====================================================
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -233,7 +233,7 @@ function basic_optimization() {
 }
 
 function domain_check() {
-  read -rp "请输入你的域名信息(eg: www.wulabing.com):" domain
+  read -rp "请输入你的域名信息(eg: www.aixohub.com):" domain
   domain_ip=$(curl -sm8 ipget.net/?ip="${domain}")
   print_ok "正在获取 IP 地址信息，请耐心等待"
   wgcfv4_status=$(curl -s4m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
@@ -379,6 +379,12 @@ function configure_v2ray_ws() {
   modify_port
   modify_fallback_ws
   modify_ws
+}
+
+function configure_v2ray_quic() {
+  cd /usr/local/etc/v2ray && rm -f config.json && wget -O config.json ${github_repo}/${github_branch}/config/quic_server.json
+  modify_UUID
+  modify_port
 }
 
 function v2ray_install() {
@@ -555,16 +561,16 @@ function vless_xtls-rprx-direct_link() {
   DOMAIN=$(cat ${domain_tmp_dir}/domain)
 
   print_ok "URL 链接 (VLESS + TCP + TLS)"
-  print_ok "vless://$UUID@$DOMAIN:$PORT?security=tls&flow=$FLOW#TLS_wulabing-$DOMAIN"
+  print_ok "vless://$UUID@$DOMAIN:$PORT?security=tls&flow=$FLOW#TLS_aixohub-$DOMAIN"
 
   print_ok "URL 链接 (VLESS + TCP + XTLS)"
-  print_ok "vless://$UUID@$DOMAIN:$PORT?security=xtls&flow=$FLOW#XTLS_wulabing-$DOMAIN"
+  print_ok "vless://$UUID@$DOMAIN:$PORT?security=xtls&flow=$FLOW#XTLS_aixohub-$DOMAIN"
   print_ok "-------------------------------------------------"
   print_ok "URL 二维码 (VLESS + TCP + TLS) （请在浏览器中访问）"
-  print_ok "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=vless://$UUID@$DOMAIN:$PORT?security=tls%26flow=$FLOW%23TLS_wulabing-$DOMAIN"
+  print_ok "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=vless://$UUID@$DOMAIN:$PORT?security=tls%26flow=$FLOW%23TLS_aixohub-$DOMAIN"
 
   print_ok "URL 二维码 (VLESS + TCP + XTLS) （请在浏览器中访问）"
-  print_ok "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=vless://$UUID@$DOMAIN:$PORT?security=xtls%26flow=$FLOW%23XTLS_wulabing-$DOMAIN"
+  print_ok "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=vless://$UUID@$DOMAIN:$PORT?security=xtls%26flow=$FLOW%23XTLS_aixohub-$DOMAIN"
 }
 
 function vless_xtls-rprx-direct_information() {
@@ -586,17 +592,20 @@ function vless_xtls-rprx-direct_information() {
 
 function ws_information() {
   UUID=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
+  UUID=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
   PORT=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].port)
-  FLOW=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].flow | tr -d '"')
+  NET_WORK=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].network | tr -d '"')
+  SECURITY=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].security | tr -d '"')
   WS_PATH=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.fallbacks[2].path | tr -d '"')
+
   DOMAIN=$(cat ${domain_tmp_dir}/domain)
 
   echo -e "${Red} V2ray 配置信息 ${Font}"
   echo -e "${Red} 地址（address）:${Font}  $DOMAIN"
   echo -e "${Red} 端口（port）：${Font}  $PORT"
   echo -e "${Red} 用户 ID（UUID）：${Font} $UUID"
-  echo -e "${Red} 加密方式（security）：${Font} none "
-  echo -e "${Red} 传输协议（network）：${Font} ws "
+  echo -e "${Red} 加密方式（security）：${Font} $SECURITY "
+  echo -e "${Red} 传输协议（network）：${Font} $NET_WORK "
   echo -e "${Red} 伪装类型（type）：${Font} none "
   echo -e "${Red} 路径（path）：${Font} $WS_PATH "
   echo -e "${Red} 底层传输安全：${Font} tls "
@@ -606,27 +615,29 @@ function ws_link() {
   UUID=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
   PORT=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].port)
   FLOW=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].flow | tr -d '"')
+  NET_WORK=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].network | tr -d '"')
+  SECURITY=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].security | tr -d '"')
   WS_PATH=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.fallbacks[2].path | tr -d '"')
   WS_PATH_WITHOUT_SLASH=$(echo $WS_PATH | tr -d '/')
   DOMAIN=$(cat ${domain_tmp_dir}/domain)
 
   print_ok "URL 链接 (VLESS + TCP + TLS)"
-  print_ok "vless://$UUID@$DOMAIN:$PORT?security=tls#TLS_wulabing-$DOMAIN"
+  print_ok "vless://$UUID@$DOMAIN:$PORT?security=tls#TLS_aixohub-$DOMAIN-$PORT"
 
   print_ok "URL 链接 (VLESS + TCP + XTLS)"
-  print_ok "vless://$UUID@$DOMAIN:$PORT?security=xtls&flow=$FLOW#XTLS_wulabing-$DOMAIN"
+  print_ok "vless://$UUID@$DOMAIN:$PORT?security=$SECURITY&flow=$FLOW#XTLS_aixohub-$DOMAIN-$PORT"
 
   print_ok "URL 链接 (VLESS + WebSocket + TLS)"
-  print_ok "vless://$UUID@$DOMAIN:$PORT?type=ws&security=tls&path=%2f${WS_PATH_WITHOUT_SLASH}%2f#WS_TLS_wulabing-$DOMAIN"
+  print_ok "vless://$UUID@$DOMAIN:$PORT?type=ws&security=tls&path=%2f${WS_PATH_WITHOUT_SLASH}%2f#WS_TLS_aixohub-$DOMAIN"
   print_ok "-------------------------------------------------"
   print_ok "URL 二维码 (VLESS + TCP + TLS) （请在浏览器中访问）"
-  print_ok "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=vless://$UUID@$DOMAIN:$PORT?security=tls%23TLS_wulabing-$DOMAIN"
+  print_ok "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=vless://$UUID@$DOMAIN:$PORT?security=tls%23TLS_aixohub-$DOMAIN"
 
   print_ok "URL 二维码 (VLESS + TCP + XTLS) （请在浏览器中访问）"
-  print_ok "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=vless://$UUID@$DOMAIN:$PORT?security=xtls%26flow=$FLOW%23XTLS_wulabing-$DOMAIN"
+  print_ok "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=vless://$UUID@$DOMAIN:$PORT?security=xtls%26flow=$FLOW%23XTLS_aixohub-$DOMAIN"
 
   print_ok "URL 二维码 (VLESS + WebSocket + TLS) （请在浏览器中访问）"
-  print_ok "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=vless://$UUID@$DOMAIN:$PORT?type=ws%26security=tls%26path=%2f${WS_PATH_WITHOUT_SLASH}%2f%23WS_TLS_wulabing-$DOMAIN"
+  print_ok "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=vless://$UUID@$DOMAIN:$PORT?type=ws%26security=tls%26path=%2f${WS_PATH_WITHOUT_SLASH}%2f%23WS_TLS_aixohub-$DOMAIN"
 }
 
 function basic_information() {
@@ -656,9 +667,7 @@ function bbr_boost_sh() {
   wget -N --no-check-certificate "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh
 }
 
-function mtproxy_sh() {
-  wget -N --no-check-certificate "https://github.com/wulabing/mtp/raw/master/mtproxy.sh" && chmod +x mtproxy.sh && bash mtproxy.sh
-}
+
 
 function install_v2ray() {
   is_root
@@ -694,6 +703,24 @@ function install_v2ray_ws() {
   restart_all
   basic_ws_information
 }
+
+function install_v2ray_quic() {
+  is_root
+  system_check
+  dependency_install
+  basic_optimization
+  domain_check
+  port_exist_check 80
+  v2ray_install
+  configure_v2ray_quic
+  nginx_install
+  configure_nginx
+  configure_web
+  generate_certificate
+  ssl_judge_and_install
+  restart_all
+  basic_ws_information
+}
 menu() {
   update_sh
   shell_mode_check
@@ -705,7 +732,8 @@ menu() {
   echo -e "—————————————— 安装向导 ——————————————"""
   echo -e "${Green}0.${Font}  升级 脚本"
   echo -e "${Green}1.${Font}  安装 V2ray (VLESS + TCP + XTLS / TLS + Nginx)"
-  echo -e "${Green}2.${Font}  安装 V2ray (VLESS + TCP + XTLS / TLS + Nginx 及 VLESS + TCP + TLS + Nginx + WebSocket 回落并存模式)"
+  echo -e "${Green}2.${Font}  安装 V2ray VLESS + TCP + TLS + Nginx + WebSocket 回落并存模式"
+  echo -e "${Green}3.${Font}  安装 V2ray VLESS + QUIC + XTLS + Nginx + WebSocket 回落并存模式"
   echo -e "—————————————— 配置变更 ——————————————"
   echo -e "${Green}11.${Font} 变更 UUID"
   echo -e "${Green}13.${Font} 变更 连接端口"
@@ -717,7 +745,6 @@ menu() {
   #    echo -e "${Green}23.${Font}  查看 V2Ray 配置信息"
   echo -e "—————————————— 其他选项 ——————————————"
   echo -e "${Green}31.${Font} 安装 4 合 1 BBR、锐速安装脚本"
-  echo -e "${Yellow}32.${Font} 安装 MTproxy （不推荐使用,请相关用户关闭或卸载）"
   echo -e "${Green}33.${Font} 卸载 V2ray"
   echo -e "${Green}34.${Font} 更新 V2ray-core"
   echo -e "${Green}35.${Font} 安装 V2ray-core 测试版 (Pre)"
@@ -733,6 +760,9 @@ menu() {
     ;;
   2)
     install_v2ray_ws
+    ;;
+  3)
+    install_v2ray_quic
     ;;
   11)
     read -rp "请输入 UUID:" UUID
@@ -777,9 +807,6 @@ menu() {
     ;;
   31)
     bbr_boost_sh
-    ;;
-  32)
-    mtproxy_sh
     ;;
   33)
     source '/etc/os-release'
