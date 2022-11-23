@@ -37,7 +37,7 @@
       "tag": "in-quic",
       "streamSettings": {
         "network": "quic",
-        "security": "xtls",
+        "security": "tls",
         "quicSettings": {
           "security": "aes-128-gcm",
           "key": "aixohub-key",
@@ -45,7 +45,7 @@
             "type": "wechat-video"
           }
         },
-        "xtlsSettings": {
+        "tlsSettings": {
           "minVersion": "1.2",
           "certificates": [
             {
