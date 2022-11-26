@@ -4,7 +4,7 @@ set -e
 
 VERSION="1.18.1"
 
-[ -z "$GOROOT" ] && GOROOT="$HOME/.go"
+[ -z "$GOROOT" ] && GOROOT="/opt/go"
 [ -z "$GOPATH" ] && GOPATH="$HOME/go"
 
 OS="$(uname -s)"
