@@ -27,6 +27,9 @@ https://github.com/XTLS/Xray-core/issues/91
 
 ```
 wget -N --no-check-certificate -q -O install-v2ray.sh "https://raw.githubusercontent.com/aixohub/v2ray_onekey/main/install-v2ray.sh" && chmod +x install-v2ray.sh && bash install-v2ray.sh
+
+
+wget -N --no-check-certificate -q -O v2ray.sh "https://raw.githubusercontent.com/233boy/v2ray/master/v2ray.sh"
 ```
 
 - xray

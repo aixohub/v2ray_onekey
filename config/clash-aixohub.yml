@@ -1,0 +1,33 @@
+mixed-port: 7890
+mode: Rule
+external-controller: 172.93.43.116:9090
+external-ui: dashboard
+secret: aixohub-key
+
+proxies:
+    - name: shadowsocks-01
+      type: ss
+      server: 66.112.214.64
+      port: 9890
+      cipher: aes-256-gcm
+      password: 
+
+proxy-groups:
+  - name: auto
+    type: select
+    proxies:
+      - shadowsocks-01
+
+rules:
+  - DOMAIN-SUFFIX,google.com,auto
+  - DOMAIN-KEYWORD,google,auto
+  - DOMAIN,google.com,auto
+  - DOMAIN-SUFFIX,ad.com,REJECT
+  - SRC-IP-CIDR,192.168.1.201/32,DIRECT
+  # optional param "no-resolve" for IP rules (GEOIP, IP-CIDR, IP-CIDR6)
+  - IP-CIDR,127.0.0.0/8,DIRECT
+  - GEOIP,CN,DIRECT
+  - DST-PORT,80,DIRECT
+  - SRC-PORT,7777,DIRECT
+  - RULE-SET,apple,REJECT # Premium only
+  - MATCH,auto
