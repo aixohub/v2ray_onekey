@@ -378,7 +378,7 @@ server {
         return 404;
     }
     proxy_redirect off;
-    proxy_pass http://127.0.0.1:60012; # 假设WebSocket监听在环回地址的10000端口上
+    proxy_pass http://127.0.0.1:${WS_PORT}; # 假设WebSocket监听在环回地址的10000端口上
     proxy_http_version 1.1;
     proxy_set_header Upgrade \$http_upgrade;
     proxy_set_header Connection \"upgrade\";
@@ -397,8 +397,8 @@ server {
 }
 
 function modify_port() {
-  read -rp "请输入端口号(默认：443)：" PORT
-  [ -z "$PORT" ] && PORT="443"
+  read -rp "请输入端口号(默认: 9098)：" PORT
+  [ -z "$PORT" ] && PORT="9098"
   if [[ $PORT -le 0 ]] || [[ $PORT -gt 65535 ]]; then
     print_error "请输入 0-65535 之间的值"
     exit 1
@@ -410,14 +410,14 @@ function modify_port() {
 }
 
 function modify_port_ws() {
-  read -rp "请输入ws端口号(默认：443)：" PORT
-  [ -z "$PORT" ] && PORT="443"
-  if [[ $PORT -le 0 ]] || [[ $PORT -gt 65535 ]]; then
+  read -rp "请输入ws端口号(默认：60020)：" WS_PORT
+  [ -z "$PORT" ] && WS_PORT="60020"
+  if [[ $WS_PORT -le 0 ]] || [[ $WS_PORT -gt 65535 ]]; then
     print_error "请输入 0-65535 之间的值"
     exit 1
   fi
-  port_exist_check $PORT
-  cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",1,"port"];'${PORT}')' >${xray_conf_dir}/config_tmp.json
+  port_exist_check $WS_PORT
+  cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",1,"port"];'${WS_PORT}')' >${xray_conf_dir}/config_tmp.json
   xray_tmp_config_file_check_and_use
   judge "Xray 端口 修改"
 }
@@ -432,6 +432,7 @@ function configure_xray_ws() {
   cd /usr/local/etc/xray && rm -f config.json && wget -O config.json ${github_repo}/${github_branch}/config/xray_tls_ws_mix-rprx-direct.json
   modify_UUID
   modify_UUID_ws
+  modify_port
   modify_port_ws
   modify_fallback_ws
   modify_ws
