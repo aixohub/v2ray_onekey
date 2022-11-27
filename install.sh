@@ -40,7 +40,9 @@ cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
 
 VERSION=$(echo "${VERSION}" | awk -F "[()]" '{print $2}')
+
 WS_PATH="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})/"
+WS_PATH_WITHOUT_SLASH=$(echo $WS_PATH | tr -d '/')
 
 function shell_mode_check() {
   if [ -f ${xray_conf_dir}/config.json ]; then
@@ -371,7 +373,7 @@ server {
   ssl_prefer_server_ciphers off;
   
   server_name          ${domain};
-  location /${WS_PATH} { # 与 V2Ray 配置中的 path 保持一致
+  location /${WS_PATH_WITHOUT_SLASH} { # 与 V2Ray 配置中的 path 保持一致
     proxy_redirect off;
     proxy_pass http://127.0.0.1:60012; # 假设WebSocket监听在环回地址的10000端口上
     proxy_http_version 1.1;
