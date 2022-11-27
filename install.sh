@@ -372,9 +372,6 @@ server {
   
   server_name          ${domain};
   location /${WS_PATH} { # 与 V2Ray 配置中的 path 保持一致
-    if ($http_upgrade != \"websocket\") { # WebSocket协商失败时返回404
-        return 404;
-    }
     proxy_redirect off;
     proxy_pass http://127.0.0.1:60012; # 假设WebSocket监听在环回地址的10000端口上
     proxy_http_version 1.1;
