@@ -1,6 +1,6 @@
-mixed-port: 7890
+mixed-port: 7990
 mode: Rule
-external-controller: 172.93.43.116:9090
+external-controller: 104.244.93.42:9090
 external-ui: dashboard
 secret: aixohub-key
 
@@ -8,9 +8,9 @@ proxies:
     - name: shadowsocks-01
       type: ss
       server: 66.112.214.64
-      port: 9890
+      port: 9898
       cipher: aes-256-gcm
-      password: 
+      password: aixohub-wangpwm@2024
 
 proxy-groups:
   - name: auto
@@ -29,5 +29,4 @@ rules:
   - GEOIP,CN,DIRECT
   - DST-PORT,80,DIRECT
   - SRC-PORT,7777,DIRECT
-  - RULE-SET,apple,REJECT # Premium only
   - MATCH,auto

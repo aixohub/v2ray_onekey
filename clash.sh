@@ -246,6 +246,13 @@ go install github.com/Dreamacro/clash@latest
 
 cd  $GOPATH/bin
 
+mv clash /usr/local/bin/clash
+
+mkdir -p /etc/clash
+
+
+
+
 
 echo "[Unit]
 Description=Clash daemon, A rule-based proxy in Go.
