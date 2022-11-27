@@ -345,7 +345,48 @@ function modify_ws() {
 
 function configure_nginx() {
   nginx_conf="/etc/nginx/conf.d/${domain}.conf"
-  cd /etc/nginx/conf.d/ && rm -f ${domain}.conf && wget -O ${domain}.conf ${github_repo}/${github_branch}/config/web.conf
+  cd /etc/nginx/conf.d/ && rm -f ${domain}.conf 
+  echo "
+server {
+  listen 80;
+  listen [::]:80;
+  server_name xxx;
+  return 301 https://$http_host$request_uri;
+  access_log  /dev/null;
+  error_log  /dev/null;
+}
+
+ server {
+  listen 443 ssl;
+  listen [::]:443 ssl;
+
+  ssl_certificate       /ssl/xray.crt;
+  ssl_certificate_key   /ssl/xray.key;
+  ssl_session_timeout 1d;
+  ssl_session_cache shared:MozSSL:10m;
+  ssl_session_tickets off;
+  
+  ssl_protocols         TLSv1.2 TLSv1.3;
+  ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+  ssl_prefer_server_ciphers off;
+  
+  server_name          ${domain};
+  location /${WS_PATH} { # 与 V2Ray 配置中的 path 保持一致
+    if ($http_upgrade != \"websocket\") { # WebSocket协商失败时返回404
+        return 404;
+    }
+    proxy_redirect off;
+    proxy_pass http://127.0.0.1:60012; # 假设WebSocket监听在环回地址的10000端口上
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection \"upgrade\";
+    proxy_set_header Host $host;
+    # Show real IP in v2ray access.log
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  }
+}" > ${domain}.conf
+
   sed -i "s/xxx/${domain}/g" ${nginx_conf}
   judge "Nginx 配置 修改"
   
@@ -366,6 +407,19 @@ function modify_port() {
   judge "Xray 端口 修改"
 }
 
+function modify_port_ws() {
+  read -rp "请输入ws端口号(默认：443)：" PORT
+  [ -z "$PORT" ] && PORT="443"
+  if [[ $PORT -le 0 ]] || [[ $PORT -gt 65535 ]]; then
+    print_error "请输入 0-65535 之间的值"
+    exit 1
+  fi
+  port_exist_check $PORT
+  cat ${xray_conf_dir}/config.json | jq 'setpath(["inbounds",1,"port"];'${PORT}')' >${xray_conf_dir}/config_tmp.json
+  xray_tmp_config_file_check_and_use
+  judge "Xray 端口 修改"
+}
+
 function configure_xray() {
   cd /usr/local/etc/xray && rm -f config.json && wget -O config.json ${github_repo}/${github_branch}/config/xray_xtls-rprx-direct.json
   modify_UUID
@@ -376,7 +430,7 @@ function configure_xray_ws() {
   cd /usr/local/etc/xray && rm -f config.json && wget -O config.json ${github_repo}/${github_branch}/config/xray_tls_ws_mix-rprx-direct.json
   modify_UUID
   modify_UUID_ws
-  modify_port
+  modify_port_ws
   modify_fallback_ws
   modify_ws
 }

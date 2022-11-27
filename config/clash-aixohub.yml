@@ -10,8 +10,8 @@ proxies:
       server: 66.112.214.64
       port: 9898
       cipher: aes-256-gcm
-      password: 
-
+      password:
+      
 proxy-groups:
   - name: auto
     type: select

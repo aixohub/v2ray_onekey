@@ -60,7 +60,7 @@
       }
     },
     {
-      "port": 60002,
+      "port": 60012,
       "listen": "127.0.0.1",
       "protocol": "vless",
       "settings": {
