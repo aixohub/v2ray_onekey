@@ -411,7 +411,7 @@ function modify_port() {
 
 function modify_port_ws() {
   read -rp "请输入ws端口号(默认：60020)：" WS_PORT
-  [ -z "$PORT" ] && WS_PORT="60020"
+  [ -z "$WS_PORT" ] && WS_PORT="60020"
   if [[ $WS_PORT -le 0 ]] || [[ $WS_PORT -gt 65535 ]]; then
     print_error "请输入 0-65535 之间的值"
     exit 1
