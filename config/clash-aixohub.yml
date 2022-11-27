@@ -10,7 +10,7 @@ proxies:
       server: 66.112.214.64
       port: 9898
       cipher: aes-256-gcm
-      password: aixohub-wangpwm@2024
+      password: 
 
 proxy-groups:
   - name: auto
