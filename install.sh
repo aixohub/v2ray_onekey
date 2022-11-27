@@ -723,6 +723,7 @@ function install_xray() {
   basic_optimization
   domain_check
   port_exist_check 80
+  port_exist_check 443
   xray_install
   configure_xray
   nginx_install
@@ -740,6 +741,7 @@ function install_xray_ws() {
   basic_optimization
   domain_check
   port_exist_check 80
+  port_exist_check 443
   xray_install
   configure_xray_ws
   nginx_install
