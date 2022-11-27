@@ -410,7 +410,7 @@ function modify_port() {
 }
 
 function modify_port_ws() {
-  read -rp "请输入ws端口号(默认：60020)：" WS_PORT
+  read -rp "请输入ws端口号(默认: 60020)：" WS_PORT
   [ -z "$WS_PORT" ] && WS_PORT="60020"
   if [[ $WS_PORT -le 0 ]] || [[ $WS_PORT -gt 65535 ]]; then
     print_error "请输入 0-65535 之间的值"
@@ -436,6 +436,8 @@ function configure_xray_ws() {
   modify_port_ws
   modify_fallback_ws
   modify_ws
+  systemctl restart xray
+  judge "Xray 启动"
 }
 
 function xray_install() {
