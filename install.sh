@@ -160,8 +160,10 @@ function nginx_install() {
   mkdir -p /etc/nginx/conf.d >/dev/null 2>&1
 }
 function dependency_install() {
+  if ! command -v lsof; then
   ${INS} lsof tar
   judge "安装 lsof tar"
+  fi
 
   if [[ "${ID}" == "centos" || "${ID}" == "ol" ]]; then
     ${INS} crontabs
@@ -180,11 +182,15 @@ function dependency_install() {
   fi
   judge "crontab 自启动配置 "
 
+if ! command -v unzip; then
   ${INS} unzip
   judge "安装 unzip"
+ fi
 
-  ${INS} curl
-  judge "安装 curl"
+if ! command -v curl; then
+    ${INS} curl
+    judge "安装 curl"
+fi
 
   # upgrade systemd
   ${INS} systemd
@@ -352,10 +358,28 @@ function configure_nginx() {
 server {
   listen 80;
   listen [::]:80;
-  server_name xxx;
+  server_name  ${domain};
   return 301 https://$http_host$request_uri;
   access_log  /dev/null;
   error_log  /dev/null;
+
+  location  ${WS_PATH} { # 与 V2Ray 配置中的 path 保持一致
+    if (\$http_upgrade != \"websocket\") { # WebSocket协商失败时返回404
+        return 404;
+    }
+    proxy_redirect off;
+    proxy_pass http://127.0.0.1:${WS_PORT}; # 假设WebSocket监听在环回地址的10000端口上
+    proxy_http_version 1.1;
+    proxy_read_timeout 300s;
+    proxy_connect_timeout 75s;
+    proxy_set_header Upgrade \$http_upgrade;
+    proxy_set_header Connection \"upgrade\";
+    proxy_set_header Host \$host;
+    # Show real IP in v2ray access.log
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+  }
+
 }
 
  server {
