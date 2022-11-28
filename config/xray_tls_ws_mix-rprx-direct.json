@@ -18,17 +18,17 @@
         "decryption": "none",
         "fallbacks": [
           {
-            "dest": 60000,
+            "dest": 60010,
             "alpn": "",
             "xver": 1
           },
           {
-            "dest": 60001,
+            "dest": 60011,
             "alpn": "h2",
             "xver": 1
           },
           {
-            "dest": 60002,
+            "dest": 60012,
             "path": "/wulabing",
             "xver": 1
           }
