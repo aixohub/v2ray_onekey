@@ -26,10 +26,13 @@ https://github.com/XTLS/Xray-core/issues/91
 - v2ray
 
 ```
-wget -N --no-check-certificate -q -O install-v2ray.sh "https://raw.githubusercontent.com/aixohub/v2ray_onekey/main/install-v2ray.sh" && chmod +x install-v2ray.sh && bash install-v2ray.sh
+wget -N --no-check-certificate -q -O v2ray-tcp.sh "https://raw.githubusercontent.com/aixohub/v2ray_onekey/main/v2ray-tcp.sh" && chmod +x v2ray-tcp.sh && bash v2ray-tcp.sh
 
 
 wget -N --no-check-certificate -q -O v2ray.sh "https://raw.githubusercontent.com/233boy/v2ray/master/v2ray.sh"
+
+
+wget -N --no-check-certificate -q -O v2ray-ws.sh "https://raw.githubusercontent.com/aixohub/v2ray_onekey/main/v2ray-ws.sh" && chmod +x v2ray-ws.sh && bash v2ray-ws.sh
 ```
 
 - xray
@@ -88,20 +91,6 @@ Nginx 目录： `/etc/nginx`
 
 证书文件： `/ssl/xray.key`（私钥）和 `/ssl/xray.crt`（证书公钥）
 
-### 捐赠
-
-您可以使用我的 搬瓦工 AFF 购买 VPS
-
-https://bandwagonhost.com/aff.php?aff=63939
-
-
-您可以使用我的 DMIT AFF 购买 VPS
-
-https://www.dmit.io/aff.php?aff=3957
-
-您可以使用我的 Vultr AFF 创建新的 Vultr 账号并使用
-
-https://www.vultr.com/?ref=6881279
 
 
 
