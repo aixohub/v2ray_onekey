@@ -360,7 +360,7 @@ server {
         return 404;
     }
     proxy_redirect off;
-    proxy_pass http://127.0.0.1:${WS_PORT}; # 假设WebSocket监听在环回地址的10000端口上
+    proxy_pass http://127.0.0.1:${PORT};
     proxy_http_version 1.1;
     proxy_read_timeout 300s;
     proxy_connect_timeout 75s;
@@ -394,7 +394,7 @@ server {
         return 404;
     }
     proxy_redirect off;
-    proxy_pass http://127.0.0.1:${WS_PORT}; # 假设WebSocket监听在环回地址的10000端口上
+    proxy_pass http://127.0.0.1:${PORT}; # 假设WebSocket监听在环回地址的10000端口上
     proxy_http_version 1.1;
     proxy_read_timeout 300s;
     proxy_connect_timeout 75s;
