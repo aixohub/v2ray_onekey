@@ -633,8 +633,6 @@ function ws_link() {
   FLOW=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].flow | tr -d '"')
   NET_WORK=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].streamSettings.network | tr -d '"')
   SECURITY=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].streamSettings.security | tr -d '"')
-  WS_PATH=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.fallbacks[2].path | tr -d '"')
-  WS_PATH_WITHOUT_SLASH=$(echo $WS_PATH | tr -d '/')
   DOMAIN=$(cat ${domain_tmp_dir}/domain)
 
 
