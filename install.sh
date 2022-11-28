@@ -384,8 +384,8 @@ server {
 
 server
 {
-        listen 127.0.0.1:60000 proxy_protocol;
-        listen 127.0.0.1:60001 http2 proxy_protocol;
+        listen 127.0.0.1:60010 proxy_protocol;
+        listen 127.0.0.1:60011 http2 proxy_protocol;
         server_name xxx;
         index index.html index.htm index.php default.php default.htm default.html;
         root /www/v2ray_web;
