@@ -259,9 +259,9 @@ function domain_check() {
     echo -e nameserver 2a01:4f8:c2c:123f::1 > /etc/resolv.conf
     print_ok "识别为 IPv6 Only 的 VPS，自动添加 DNS64 服务器"
   fi
-  echo -e "域名通过 DNS 解析的 IP 地址：${domain_ip}"
-  echo -e "本机公网 IPv4 地址： ${local_ipv4}"
-  echo -e "本机公网 IPv6 地址： ${local_ipv6}"
+  echo -e "域名通过 DNS 解析的 IP 地址: ${domain_ip}"
+  echo -e "本机公网 IPv4 地址:  ${local_ipv4}"
+  echo -e "本机公网 IPv6 地址:  ${local_ipv6}"
   sleep 2
   if [[ ${domain_ip} == "${local_ipv4}" ]]; then
     print_ok "域名通过 DNS 解析的 IP 地址与 本机 IPv4 地址匹配"
@@ -271,7 +271,7 @@ function domain_check() {
     sleep 2
   else
     print_error "请确保域名添加了正确的 A / AAAA 记录，否则将无法正常使用 v2ray"
-    print_error "域名通过 DNS 解析的 IP 地址与 本机 IPv4 / IPv6 地址不匹配，是否继续安装？（y/n）" && read -r install
+    print_error "域名通过 DNS 解析的 IP 地址与 本机 IPv4 / IPv6 地址不匹配，是否继续安装？(y/n)" && read -r install
     case $install in
     [yY][eE][sS] | [yY])
       print_ok "继续安装"
@@ -351,7 +351,7 @@ server {
   listen 80;
   listen [::]:80;
   server_name  ${domain};
-  return 301 https://$http_host$request_uri;
+  return 301 https://\$http_host\$request_uri;
   access_log  /dev/null;
   error_log  /dev/null;
 
@@ -381,8 +381,63 @@ server {
   systemctl restart nginx
 }
 
+
+
+function configure_nginx_ws() {
+  nginx_conf="/etc/nginx/conf.d/${domain}.conf"
+  cd /etc/nginx/conf.d/ && rm -f ${domain}.conf 
+  echo "
+server {
+  listen 80;
+  listen [::]:80;
+  server_name  ${domain};
+  return 301 https://\$http_host\$request_uri;
+  access_log  /dev/null;
+  error_log  /dev/null;
+}
+
+ server {
+  listen 443 ssl;
+  listen [::]:443 ssl;
+
+  ssl_certificate       /ssl/xray.crt;
+  ssl_certificate_key   /ssl/xray.key;
+  ssl_session_timeout 1d;
+  ssl_session_cache shared:MozSSL:10m;
+  ssl_session_tickets off;
+  
+  ssl_protocols         TLSv1.2 TLSv1.3;
+  ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+  ssl_prefer_server_ciphers off;
+  
+  server_name          ${domain};
+  location  ${WS_PATH} { # 与 V2Ray 配置中的 path 保持一致
+    if (\$http_upgrade != \"websocket\") { # WebSocket协商失败时返回404
+        return 404;
+    }
+    proxy_redirect off;
+    proxy_pass http://127.0.0.1:${WS_PORT}; # 假设WebSocket监听在环回地址的10000端口上
+    proxy_http_version 1.1;
+    proxy_read_timeout 300s;
+    proxy_connect_timeout 75s;
+    proxy_set_header Upgrade \$http_upgrade;
+    proxy_set_header Connection \"upgrade\";
+    proxy_set_header Host \$host;
+    # Show real IP in v2ray access.log
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+  }
+}" > ${domain}.conf
+
+  sed -i "s/xxx/${domain}/g" ${nginx_conf}
+  judge "Nginx 配置 修改"
+  
+  systemctl enable nginx
+  systemctl restart nginx
+}
+
 function modify_port() {
-  read -rp "请输入端口号(默认：443)：" PORT
+  read -rp "请输入端口号(默认: 443): " PORT
   [ -z "$PORT" ] && PORT="443"
   if [[ $PORT -le 0 ]] || [[ $PORT -gt 65535 ]]; then
     print_error "请输入 0-65535 之间的值"
@@ -582,10 +637,10 @@ function vless_xtls-rprx-direct_link() {
   print_ok "URL 链接 (VLESS + TCP + XTLS)"
   print_ok "vless://$UUID@$DOMAIN:$PORT?security=xtls&flow=$FLOW#XTLS_aixohub-$DOMAIN"
   print_ok "-------------------------------------------------"
-  print_ok "URL 二维码 (VLESS + TCP + TLS) （请在浏览器中访问）"
+  print_ok "URL 二维码 (VLESS + TCP + TLS) (请在浏览器中访问)"
   print_ok "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=vless://$UUID@$DOMAIN:$PORT?security=tls%26flow=$FLOW%23TLS_aixohub-$DOMAIN"
 
-  print_ok "URL 二维码 (VLESS + TCP + XTLS) （请在浏览器中访问）"
+  print_ok "URL 二维码 (VLESS + TCP + XTLS) (请在浏览器中访问)"
   print_ok "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=vless://$UUID@$DOMAIN:$PORT?security=xtls%26flow=$FLOW%23XTLS_aixohub-$DOMAIN"
 }
 
@@ -596,14 +651,14 @@ function vless_xtls-rprx-direct_information() {
   DOMAIN=$(cat ${domain_tmp_dir}/domain)
 
   echo -e "${Red} V2ray 配置信息 ${Font}"
-  echo -e "${Red} 地址（address）:${Font}  $DOMAIN"
-  echo -e "${Red} 端口（port）：${Font}  $PORT"
-  echo -e "${Red} 用户 ID（UUID）：${Font} $UUID"
-  echo -e "${Red} 流控（flow）：${Font} $FLOW"
-  echo -e "${Red} 加密方式（security）：${Font} none "
-  echo -e "${Red} 传输协议（network）：${Font} tcp "
-  echo -e "${Red} 伪装类型（type）：${Font} none "
-  echo -e "${Red} 底层传输安全：${Font} xtls 或 tls"
+  echo -e "${Red} 地址(address):${Font}  $DOMAIN"
+  echo -e "${Red} 端口(port): ${Font}  $PORT"
+  echo -e "${Red} 用户 ID(UUID): ${Font} $UUID"
+  echo -e "${Red} 流控(flow): ${Font} $FLOW"
+  echo -e "${Red} 加密方式(security): ${Font} none "
+  echo -e "${Red} 传输协议(network): ${Font} tcp "
+  echo -e "${Red} 伪装类型(type): ${Font} none "
+  echo -e "${Red} 底层传输安全: ${Font} xtls 或 tls"
 }
 
 function ws_information() {
@@ -612,19 +667,17 @@ function ws_information() {
   PORT=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].port)
   NET_WORK=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].streamSettings.network | tr -d '"')
   SECURITY=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].streamSettings.security | tr -d '"')
-  WS_PATH=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.fallbacks[2].path | tr -d '"')
-
   DOMAIN=$(cat ${domain_tmp_dir}/domain)
 
   echo -e "${Red} V2ray 配置信息 ${Font}"
-  echo -e "${Red} 地址（address）:${Font}  $DOMAIN"
-  echo -e "${Red} 端口（port）：${Font}  $PORT"
-  echo -e "${Red} 用户 ID（UUID）：${Font} $UUID"
-  echo -e "${Red} 加密方式（security）：${Font} $SECURITY "
-  echo -e "${Red} 传输协议（network）：${Font} $NET_WORK "
-  echo -e "${Red} 伪装类型（type）：${Font} none "
-  echo -e "${Red} 路径（path）：${Font} $WS_PATH "
-  echo -e "${Red} 底层传输安全：${Font} tls "
+  echo -e "${Red} 地址(address):${Font}  $DOMAIN"
+  echo -e "${Red} 端口(port): ${Font}  $PORT"
+  echo -e "${Red} 用户 ID(UUID): ${Font} $UUID"
+  echo -e "${Red} 加密方式(security): ${Font} $SECURITY "
+  echo -e "${Red} 传输协议(network): ${Font} $NET_WORK "
+  echo -e "${Red} 伪装类型(type): ${Font} none "
+  echo -e "${Red} 路径(path): ${Font} $WS_PATH "
+  echo -e "${Red} 底层传输安全: ${Font} tls "
 }
 
 function ws_link() {
@@ -640,8 +693,8 @@ function ws_link() {
   print_ok "vless://$UUID@$DOMAIN:$PORT?type=ws&security=tls&path=%2f${WS_PATH_WITHOUT_SLASH}%2f#WS_TLS_aixohub-$DOMAIN"
   print_ok "-------------------------------------------------"
 
-  print_ok "URL 二维码 (VLESS + WebSocket + TLS) （请在浏览器中访问）"
-  print_ok "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=vless://$UUID@$DOMAIN:$PORT?type=ws%26security=tls%26path=%2f${WS_PATH_WITHOUT_SLASH}%2f%23WS_TLS_aixohub-$DOMAIN-$PORT"
+  print_ok "URL 二维码 (VLESS + WebSocket + TLS) (请在浏览器中访问)"
+  print_ok "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=vless://$UUID@$DOMAIN:$PORT?type=ws%26security=tls%26path=%2f${WS_PATH}%2f%23WS_TLS_aixohub-$DOMAIN-$PORT"
 }
 
 
@@ -682,6 +735,7 @@ function install_v2ray_ws() {
   configure_web
   generate_certificate
   ssl_judge_and_install
+  configure_nginx_ws
   restart_all
   basic_ws_information
 }
@@ -694,7 +748,7 @@ menu() {
   echo -e "\t---authored by aixohub---"
   echo -e "\thttps://github.com/aixohub\n"
 
-  echo -e "当前已安装版本：${shell_mode}"
+  echo -e "当前已安装版本: ${shell_mode}"
   echo -e "—————————————— 安装向导 ——————————————"""
   echo -e "${Green}0.${Font}  升级 脚本"
   echo -e "${Green}1.${Font}  安装 V2ray (VLESS + TCP + XTLS / TLS + Nginx)"
@@ -716,7 +770,7 @@ menu() {
   echo -e "${Green}35.${Font} 安装 V2ray-core 测试版 (Pre)"
   echo -e "${Green}36.${Font} 手动更新 SSL 证书"
   echo -e "${Green}40.${Font} 退出"
-  read -rp "请输入数字：" menu_num
+  read -rp "请输入数字: " menu_num
   case $menu_num in
   0)
     update_sh
@@ -746,7 +800,7 @@ menu() {
     ;;
   14)
     if [[ ${shell_mode} == "ws" ]]; then
-      read -rp "请输入路径(示例：/aixohub/ 要求两侧都包含 /):" WS_PATH
+      read -rp "请输入路径(示例: /aixohub/ 要求两侧都包含 /):" WS_PATH
       modify_ws
       restart_all
     else
