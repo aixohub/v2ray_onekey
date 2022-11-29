@@ -399,8 +399,8 @@ server {
  server {
   listen 443 ssl;
 
-  ssl_certificate       /ssl/xray.crt;
-  ssl_certificate_key   /ssl/xray.key;
+  ssl_certificate       /ssl/v2ray.crt;
+  ssl_certificate_key   /ssl/v2ray.key;
   ssl_session_timeout 1d;
   ssl_session_cache shared:MozSSL:10m;
   ssl_session_tickets off;
