@@ -340,7 +340,7 @@ function modify_UUID_ws() {
 function modify_ws() {
   cat ${v2ray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","wsSettings","path"];"'${WS_PATH}'")' >${v2ray_conf_dir}/config_tmp.json
   v2ray_tmp_config_file_check_and_use
-  judge "V2ray ws 修改"
+  judge "V2ray ws path 修改"
 }
 
 function configure_nginx() {
@@ -398,7 +398,6 @@ server {
 
  server {
   listen 443 ssl;
-  listen [::]:443 ssl;
 
   ssl_certificate       /ssl/xray.crt;
   ssl_certificate_key   /ssl/xray.key;
@@ -416,7 +415,7 @@ server {
         return 404;
     }
     proxy_redirect off;
-    proxy_pass http://127.0.0.1:${WS_PORT}; # 假设WebSocket监听在环回地址的10000端口上
+    proxy_pass http://127.0.0.1:${PORT}; # 假设WebSocket监听在环回地址的10000端口上
     proxy_http_version 1.1;
     proxy_read_timeout 300s;
     proxy_connect_timeout 75s;
