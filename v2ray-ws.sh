@@ -430,7 +430,7 @@ server {
 }" > ${domain}.conf
 
   sed -i "s/xxx/${domain}/g" ${nginx_conf}
-  judge "Nginx 配置 修改"
+  judge "Nginx ws 配置 修改"
   
   systemctl enable nginx
   systemctl restart nginx
