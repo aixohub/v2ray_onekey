@@ -1,14 +1,21 @@
 {
+  "log": {
+    "access": "/var/log/v2ray/access.log",
+    "error": "/var/log/v2ray/error.log",
+    "loglevel": "warning"
+  },
     "inbounds": [
       {
         "port": 10000,
         "listen":"127.0.0.1",
-        "protocol": "vmess",
+        "protocol": "vless",
         "settings": {
+          "decryption":"none",
           "clients": [
             {
               "id": "b831381d-6324-4d53-ad4f-8cda48b30811",
-              "alterId": 0
+              "level": 64,
+              "alterId": 64
             }
           ]
         },
@@ -16,21 +23,7 @@
           "network": "ws",
           "security": "tls",
           "wsSettings": {
-              "acceptProxyProtocol": true,
               "path": "xx"
-          },
-          "tlsSettings": {
-            "minVersion": "1.2",
-            "certificates": [
-              {
-                "certificateFile": "/usr/local/etc/xray/self_signed_cert.pem",
-                "keyFile": "/usr/local/etc/xray/self_signed_key.pem"
-              },
-              {
-                "certificateFile": "/ssl/xray.crt",
-                "keyFile": "/ssl/xray.key"
-              }
-            ]
           }
         }
       }

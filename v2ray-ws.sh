@@ -40,7 +40,7 @@ cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
 
 VERSION=$(echo "${VERSION}" | awk -F "[()]" '{print $2}')
-WS_PATH="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})/"
+WS_PATH="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
 WS_PATH_WITHOUT_SLASH=$(echo $WS_PATH | tr -d '/')
 
 function shell_mode_check() {
@@ -417,6 +417,7 @@ server {
             proxy_http_version 1.1;
             proxy_set_header Upgrade \$http_upgrade;
             proxy_set_header Connection \$connection_upgrade;
+           
   }
 }
 
@@ -442,21 +443,23 @@ server {
 
   # 与 V2Ray 配置中的 path 保持一致
   location  ${WS_PATH} { 
-    if (\$http_upgrade != \"websocket\") { # WebSocket协商失败时返回404
-        return 404;
-    }
     proxy_redirect off;
     proxy_pass https://websocket${WS_PATH}; 
 
-    proxy_ssl_certificate     /ssl/v2ray.crt;
-    proxy_ssl_certificate_key /ssl/v2ray.key;
+    # proxy_ssl_certificate     /ssl/v2ray.crt;
+    # proxy_ssl_certificate_key /ssl/v2ray.key;
+    # proxy_ssl_name \$host;
+    # proxy_ssl_server_name on;
 
     proxy_http_version 1.1;
     proxy_read_timeout 300s;
     proxy_connect_timeout 75s;
+    proxy_ssl_session_reuse off;
+
+    proxy_set_header Host \$host;
     proxy_set_header Upgrade \$http_upgrade;
     proxy_set_header Connection \"upgrade\";
-    proxy_set_header Host \$host;
+ 
     # Show real IP in v2ray access.log
     proxy_set_header X-Real-IP \$remote_addr;
     proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
