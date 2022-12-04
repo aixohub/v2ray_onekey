@@ -386,7 +386,20 @@ server {
 function configure_nginx_ws() {
   nginx_conf="/etc/nginx/conf.d/${domain}.conf"
   cd /etc/nginx/conf.d/ && rm -f ${domain}.conf 
+  
   echo "
+
+map \$http_upgrade \$connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+upstream websocket {
+    server localhost:${PORT};
+}
+
+
+
 server {
   listen 80;
   listen [::]:80;
@@ -394,11 +407,23 @@ server {
   return 301 https://\$http_host\$request_uri;
   access_log  /dev/null;
   error_log  /dev/null;
+
+  location ${WS_PATH} {
+            proxy_pass http://websocket${WS_PATH};
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Real_IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
+  }
 }
 
  server {
   listen 443 ssl;
-
+  server_name          ${domain};
+  
   ssl_certificate       /ssl/v2ray.crt;
   ssl_certificate_key   /ssl/v2ray.key;
   ssl_session_timeout 1d;
@@ -409,13 +434,23 @@ server {
   ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
   ssl_prefer_server_ciphers off;
   
-  server_name          ${domain};
-  location  ${WS_PATH} { # 与 V2Ray 配置中的 path 保持一致
+
+  location / {
+        root   html;
+        index  index.html index.htm;
+  }
+
+  # 与 V2Ray 配置中的 path 保持一致
+  location  ${WS_PATH} { 
     if (\$http_upgrade != \"websocket\") { # WebSocket协商失败时返回404
         return 404;
     }
     proxy_redirect off;
-    proxy_pass http://127.0.0.1:${PORT}; # 假设WebSocket监听在环回地址的10000端口上
+    proxy_pass https://websocket${WS_PATH}; 
+
+    proxy_ssl_certificate     /ssl/v2ray.crt;
+    proxy_ssl_certificate_key /ssl/v2ray.key;
+
     proxy_http_version 1.1;
     proxy_read_timeout 300s;
     proxy_connect_timeout 75s;
