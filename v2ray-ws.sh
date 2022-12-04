@@ -410,20 +410,20 @@ server {
 
   location ${WS_PATH} {
             proxy_pass http://websocket${WS_PATH};
-            proxy_set_header Host $http_host;
-            proxy_set_header X-Real_IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Host \$http_host;
+            proxy_set_header X-Real_IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
 
             proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection $connection_upgrade;
+            proxy_set_header Upgrade \$http_upgrade;
+            proxy_set_header Connection \$connection_upgrade;
   }
 }
 
  server {
   listen 443 ssl;
   server_name          ${domain};
-  
+
   ssl_certificate       /ssl/v2ray.crt;
   ssl_certificate_key   /ssl/v2ray.key;
   ssl_session_timeout 1d;
