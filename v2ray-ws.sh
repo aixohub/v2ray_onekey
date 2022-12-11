@@ -444,7 +444,7 @@ server {
   # 与 V2Ray 配置中的 path 保持一致
   location  ${WS_PATH} { 
     proxy_redirect off;
-    proxy_pass https://websocket${WS_PATH}; 
+    proxy_pass http://websocket${WS_PATH}; 
 
     # proxy_ssl_certificate     /ssl/v2ray.crt;
     # proxy_ssl_certificate_key /ssl/v2ray.key;
