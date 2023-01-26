@@ -849,7 +849,8 @@ menu() {
   echo -e "当前已安装版本: ${shell_mode}"
   echo -e "—————————————— 安装向导 ——————————————"""
   echo -e "${Green}0.${Font}  升级 脚本"
-  echo -e "${Green}1.${Font}  安装 V2ray (VLESS + ss + Nginx)"
+  echo -e "${Green}1.${Font}  安装 ss "
+  echo -e "${Green}1.${Font}  安装 V2ray ws"
   echo -e "—————————————— 配置变更 ——————————————"
   echo -e "${Green}11.${Font} 变更 UUID"
   echo -e "${Green}13.${Font} 变更 连接端口"
@@ -871,7 +872,7 @@ menu() {
     update_sh
     ;;
   1)
-    install_v2ray
+    install_ss_v2ray_plugin
     ;;
   2)
     install_v2ray_ws
