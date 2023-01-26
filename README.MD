@@ -36,7 +36,7 @@ wget -N --no-check-certificate -q -O v2ray-ws.sh "https://raw.githubusercontent.
 ```
 
 ```bash
-wget -N --no-check-certificate -q -O v2ray-ws.sh "https://raw.githubusercontent.com/aixohub/v2ray_onekey/main/v2ray-ws.sh" && chmod +x v2ray-ws.sh && bash v2ray-ws.sh
+wget -N --no-check-certificate -q -O v2ray-ss.sh "https://raw.githubusercontent.com/aixohub/v2ray_onekey/main/v2ray-ss.sh" && chmod +x v2ray-ss.sh && bash v2ray-ss.sh
 ```
 
 - xray
