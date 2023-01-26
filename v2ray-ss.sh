@@ -40,7 +40,7 @@ cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
 
 VERSION=$(echo "${VERSION}" | awk -F "[()]" '{print $2}')
-WS_PATH="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})/"
+WS_PATH="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
 WS_PATH_WITHOUT_SLASH=$(echo $WS_PATH | tr -d '/')
 
 function shell_mode_check() {
@@ -485,7 +485,7 @@ function modify_port() {
 
 
 function configure_v2ray_ws() {
-  cd /usr/local/etc/v2ray && rm -f config.json && wget -O config.json ${github_repo}/${github_branch}/config/v2ray_ws_server.json
+  cd /usr/local/etc/v2ray && rm -f config.json && wget -O config.json ${github_repo}/${github_branch}/config/v2ray_ss_server.json
   modify_UUID_ws
   modify_port
   modify_ws
@@ -503,14 +503,6 @@ function v2ray_install() {
 }
 
 function ssl_install() {
-  #  使用 Nginx 配合签发 无需安装相关依赖
-  #  if [[ "${ID}" == "centos" ||  "${ID}" == "ol" ]]; then
-  #    ${INS} socat nc
-  #  else
-  #    ${INS} socat netcat
-  #  fi
-  #  judge "安装 SSL 证书生成脚本依赖"
-
   curl -L https://get.acme.sh | bash
   judge "安装 SSL 证书生成脚本"
 }
@@ -652,6 +644,88 @@ function v2ray_uninstall() {
   exit 0
 }
 
+ss_file=0
+v2_file=0
+get_latest_ver(){
+    ss_file=$(wget -qO- https://api.github.com/repos/shadowsocks/shadowsocks-rust/releases/latest | grep name | grep x86_64-unknown-linux-musl.tar.xz | cut -f4 -d\"| head -1)
+    v2_file=$(wget -qO- https://api.github.com/repos/shadowsocks/v2ray-plugin/releases/latest | grep linux-amd64 | grep name | cut -f4 -d\")
+}
+
+
+# Installation of shadowsocks-rust
+install_ss(){
+    if [ -f /usr/local/bin/ss-server ];then
+        echo "\033[1;32mShadowsocks-libev already installed, skip.\033[0m"
+    else
+        if [ ! -f $ss_file ];then
+            ss_url=$(wget -qO- https://api.github.com/repos/shadowsocks/shadowsocks-rust/releases/latest | grep x86_64-unknown-linux-musl.tar.xz | grep browser_download_url | cut -f4 -d\" | head -1)
+            wget $ss_url
+        fi
+        tar xf $ss_file
+        cd $(echo ${ss_file} | cut -f1-3 -d\.)
+        ./configure && make
+        make install
+        cd ..
+        if [ ! -f /usr/local/bin/ss-server ];then
+            echo "\033[1;31mFailed to install shadowsocks-rust.\033[0m"
+            exit 1
+        fi
+    fi
+}
+
+# Installation of v2ray-plugin
+install_v2ray_plugin(){
+    if [ -f /usr/local/bin/v2ray-plugin ];then
+        echo "\033[1;32mv2ray-plugin already installed, skip.\033[0m"
+    else
+        if [ ! -f $v2_file ];then
+            v2_url=$(wget -qO- https://api.github.com/repos/shadowsocks/v2ray-plugin/releases/latest | grep linux-amd64 | grep browser_download_url | cut -f4 -d\")
+            wget $v2_url
+        fi
+        tar xf $v2_file
+        mv v2ray-plugin_linux_amd64 /usr/local/bin/v2ray-plugin
+        if [ ! -f /usr/local/bin/v2ray-plugin ];then
+            echo "\033[1;31mFailed to install v2ray-plugin.\033[0m"
+            exit 1
+        fi
+    fi
+}
+
+
+ss_conf(){
+    shadowsocks_pwd="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
+    mkdir -p /etc/shadowsocks-rust
+    cat >/etc/shadowsocks-rust/config.json << EOF
+{
+    "server":"0.0.0.0",
+    "server_port":$PORT,
+    "password":"$shadowsocks_pwd",
+    "timeout":300,
+    "method":"aes-256-gcm",
+    "plugin":"v2ray-plugin",
+    "plugin_opts":"server;path=$WS_PATH;loglevel=none"
+}
+EOF
+    cat >/lib/systemd/system/shadowsocks.service << EOF
+[Unit]
+Description=Shadowsocks-libev Server Service
+After=network.target
+[Service]
+ExecStart=/usr/local/bin/ss-server -c /etc/shadowsocks-rust/config.json
+ExecReload=/bin/kill -HUP \$MAINPID
+Restart=on-failure
+[Install]
+WantedBy=multi-user.target
+EOF
+}
+
+function restart_shadowsocks() {
+  systemctl restart nginx
+  judge "Nginx 启动"
+  systemctl restart shadowsocks
+  judge "V2ray 启动"
+}
+
 function restart_all() {
   systemctl restart nginx
   judge "Nginx 启动"
@@ -659,41 +733,7 @@ function restart_all() {
   judge "V2ray 启动"
 }
 
-function vless_xtls-rprx-direct_link() {
-  UUID=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-  PORT=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].port)
-  FLOW=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].flow | tr -d '"')
-  DOMAIN=$(cat ${domain_tmp_dir}/domain)
 
-  print_ok "URL 链接 (VLESS + TCP + TLS)"
-  print_ok "vless://$UUID@$DOMAIN:$PORT?security=tls&flow=$FLOW#TLS_aixohub-$DOMAIN"
-
-  print_ok "URL 链接 (VLESS + TCP + XTLS)"
-  print_ok "vless://$UUID@$DOMAIN:$PORT?security=xtls&flow=$FLOW#XTLS_aixohub-$DOMAIN"
-  print_ok "-------------------------------------------------"
-  print_ok "URL 二维码 (VLESS + TCP + TLS) (请在浏览器中访问)"
-  print_ok "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=vless://$UUID@$DOMAIN:$PORT?security=tls%26flow=$FLOW%23TLS_aixohub-$DOMAIN"
-
-  print_ok "URL 二维码 (VLESS + TCP + XTLS) (请在浏览器中访问)"
-  print_ok "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=vless://$UUID@$DOMAIN:$PORT?security=xtls%26flow=$FLOW%23XTLS_aixohub-$DOMAIN"
-}
-
-function vless_xtls-rprx-direct_information() {
-  UUID=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-  PORT=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].port)
-  FLOW=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].flow | tr -d '"')
-  DOMAIN=$(cat ${domain_tmp_dir}/domain)
-
-  echo -e "${Red} V2ray 配置信息 ${Font}"
-  echo -e "${Red} 地址(address):${Font}  $DOMAIN"
-  echo -e "${Red} 端口(port): ${Font}  $PORT"
-  echo -e "${Red} 用户 ID(UUID): ${Font} $UUID"
-  echo -e "${Red} 流控(flow): ${Font} $FLOW"
-  echo -e "${Red} 加密方式(security): ${Font} none "
-  echo -e "${Red} 传输协议(network): ${Font} tcp "
-  echo -e "${Red} 伪装类型(type): ${Font} none "
-  echo -e "${Red} 底层传输安全: ${Font} xtls 或 tls"
-}
 
 function ws_information() {
   UUID=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
@@ -736,8 +776,12 @@ function basic_ws_information() {
   print_ok "VLESS+TCP+TLS+Nginx with WebSocket 混合模式 安装成功"
   ws_information
   print_ok "————————————————————————"
-  vless_xtls-rprx-direct_information
   ws_link
+}
+
+function basic_ss_information() {
+  print_ok "shadowsocks 安装成功"
+  cat /etc/shadowsocks-rust/config.json
 }
 
 function show_access_log() {
@@ -774,24 +818,42 @@ function install_v2ray_ws() {
   basic_ws_information
 }
 
+function install_ss_v2ray_plugin() {
+  is_root
+  system_check
+  dependency_install
+  basic_optimization
+  domain_check
+  port_exist_check 80
+  get_latest_ver
+  install_ss
+  install_v2ray_plugin
+  nginx_install
+  configure_nginx
+  configure_web
+  generate_certificate
+  ssl_judge_and_install
+  configure_nginx_ws
+  restart_shadowsocks
+  basic_ss_information
+}
+
 
 menu() {
   update_sh
   shell_mode_check
-  echo -e "\t V2ray 安装管理脚本 ${Red}[${shell_version}]${Font}"
+  echo -e "\t ss V2ray 安装管理脚本 ${Red}[${shell_version}]${Font}"
   echo -e "\t---authored by aixohub---"
   echo -e "\thttps://github.com/aixohub\n"
 
   echo -e "当前已安装版本: ${shell_mode}"
   echo -e "—————————————— 安装向导 ——————————————"""
   echo -e "${Green}0.${Font}  升级 脚本"
-  echo -e "${Green}1.${Font}  安装 V2ray (VLESS + TCP + XTLS / TLS + Nginx)"
-  echo -e "${Green}2.${Font}  安装 V2ray VLESS + TCP + TLS + Nginx + WebSocket 回落并存模式"
-  echo -e "${Green}3.${Font}  安装 V2ray VLESS + QUIC + XTLS + Nginx + WebSocket 回落并存模式"
+  echo -e "${Green}1.${Font}  安装 V2ray (VLESS + ss + Nginx)"
   echo -e "—————————————— 配置变更 ——————————————"
   echo -e "${Green}11.${Font} 变更 UUID"
   echo -e "${Green}13.${Font} 变更 连接端口"
-  echo -e "${Green}14.${Font} 变更 WebSocket PATH"
+  echo -e "${Green}14.${Font} 变更 PATH"
   echo -e "—————————————— 查看信息 ——————————————"
   echo -e "${Green}21.${Font} 查看 实时访问日志"
   echo -e "${Green}22.${Font} 查看 实时错误日志"
@@ -801,7 +863,6 @@ menu() {
   echo -e "${Green}31.${Font} 安装 4 合 1 BBR、锐速安装脚本"
   echo -e "${Green}33.${Font} 卸载 V2ray"
   echo -e "${Green}34.${Font} 更新 V2ray-core"
-  echo -e "${Green}35.${Font} 安装 V2ray-core 测试版 (Pre)"
   echo -e "${Green}36.${Font} 手动更新 SSL 证书"
   echo -e "${Green}40.${Font} 退出"
   read -rp "请输入数字: " menu_num
