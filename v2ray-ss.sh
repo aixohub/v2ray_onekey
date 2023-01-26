@@ -328,9 +328,9 @@ function v2ray_tmp_config_file_check_and_use() {
 }
 
 
-function modify_UUID_ws() {
+function modify_password() {
    [ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
-  cat ${v2ray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","clients",0,"id"];"'${UUID}'")' >${v2ray_conf_dir}/config_tmp.json
+  cat ${v2ray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","password"];"'${UUID}'")' >${v2ray_conf_dir}/config_tmp.json
   v2ray_tmp_config_file_check_and_use
   judge "V2ray ws UUID 修改"
 }
@@ -486,7 +486,7 @@ function modify_port() {
 
 function configure_v2ray_ws() {
   cd /usr/local/etc/v2ray && rm -f config.json && wget -O config.json ${github_repo}/${github_branch}/config/v2ray_ss_server.json
-  modify_UUID_ws
+  modify_password
   modify_port
   modify_ws
 }
@@ -882,12 +882,7 @@ menu() {
     ;;
   11)
     read -rp "请输入 UUID:" UUID
-    if [[ ${shell_mode} == "tcp" ]]; then
-      modify_UUID
-    elif [[ ${shell_mode} == "ws" ]]; then
-      modify_UUID
-      modify_UUID_ws
-    fi
+    modify_password
     restart_all
     ;;
   13)
