@@ -613,21 +613,21 @@ get_latest_ver(){
 
 # Installation of shadowsocks-rust
 install_ss(){
-    if [ -f /usr/local/bin/ss-server ];then
-        echo "\033[1;32mShadowsocks-libev already installed, skip.\033[0m"
+    if [ -f /usr/local/bin/ssserver ];then
+        print_error "Shadowsocks-libev already installed, skip."
     else
         if [ ! -f $ss_file ];then
             ss_url=$(wget -qO- https://api.github.com/repos/shadowsocks/shadowsocks-rust/releases/latest | grep x86_64-unknown-linux-musl.tar.xz | grep browser_download_url | cut -f4 -d\" | head -1)
             wget $ss_url
         fi
         tar xf $ss_file
-        cd $(echo ${ss_file} | cut -f1-3 -d\.)
-        ./configure && make
-        make install
+        mv ss* /usr/local/bin/
         cd ..
-        if [ ! -f /usr/local/bin/ss-server ];then
-            echo "\033[1;31mFailed to install shadowsocks-rust.\033[0m"
+        if [ ! -f /usr/local/bin/ssserver ];then
+            print_error "Failed to install shadowsocks-rust"
             exit 1
+        else
+          print_ok "Success install shadowsocks-rust"
         fi
     fi
 }
@@ -635,7 +635,7 @@ install_ss(){
 # Installation of v2ray-plugin
 install_v2ray_plugin(){
     if [ -f /usr/local/bin/v2ray-plugin ];then
-        echo "\033[1;32m v2ray-plugin already installed, skip.\033[0m"
+        print_ok "v2ray-plugin already installed, skip."
     else
         if [ ! -f $v2_file ];then
             v2_url=$(wget -qO- https://api.github.com/repos/shadowsocks/v2ray-plugin/releases/latest | grep linux-amd64 | grep browser_download_url | cut -f4 -d\")
@@ -644,8 +644,10 @@ install_v2ray_plugin(){
         tar xf $v2_file
         mv v2ray-plugin_linux_amd64 /usr/local/bin/v2ray-plugin
         if [ ! -f /usr/local/bin/v2ray-plugin ];then
-            echo "\033[1;31mFailed to install v2ray-plugin.\033[0m"
+            print_error "Failed to install v2ray-plugin"
             exit 1
+        else
+          print_ok "v2ray-plugin install success"
         fi
     fi
 }

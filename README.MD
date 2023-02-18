@@ -36,7 +36,7 @@ wget -N --no-check-certificate -q -O v2ray-ws.sh "https://raw.githubusercontent.
 ```
 
 ```bash
-wget -N --no-check-certificate -q -O v2ray-ss.sh "https://raw.githubusercontent.com/aixohub/v2ray_onekey/main/v2ray-sock.sh" && chmod +x v2ray-sock.sh && bash v2ray-sock.sh
+wget -N --no-check-certificate -q -O v2ray-sock.sh "https://raw.githubusercontent.com/aixohub/v2ray_onekey/main/v2ray-sock.sh" && chmod +x v2ray-sock.sh && bash v2ray-sock.sh
 ```
 
 - xray
