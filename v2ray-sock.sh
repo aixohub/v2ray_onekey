@@ -410,6 +410,11 @@ function v2ray_install() {
   bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)
   judge "v2ray 安装"
 
+  if [[ -f ${domain_tmp_dir} ]]; then
+    print_ok "${domain_tmp_dir} 已存在"
+  else
+    mkdir -p ${domain_tmp_dir}
+  fi
   # 用于生成 V2ray 的导入链接
   echo $domain >$domain_tmp_dir/domain
   judge "域名记录"
@@ -499,11 +504,11 @@ function ssl_judge_and_install() {
 }
 
 function generate_certificate() {
-  if [[ -f ${cert_dir} ]]; then
-    print_ok "${cert_dir} 已存在"
-  else
-    mkdir -p ${cert_dir}
-  fi
+    if [[ -f ${cert_dir} ]]; then
+      print_ok "${cert_dir} 已存在"
+    else
+      mkdir -p ${cert_dir}
+    fi
   if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
     signedcert=$(v2ray tls cert -domain="$local_ipv6" -name="$local_ipv6" -org="$local_ipv6" -expire=87600)
   else
