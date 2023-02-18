@@ -32,8 +32,8 @@ github_repo="https://raw.githubusercontent.com/aixohub/v2ray_onekey"
 github_branch="main"
 shadowsocks_conf_dir="/usr/local/etc/shadowsocks"
 website_dir="/www/v2ray_web/"
-shadowsocks_access_log="/var/log/v2ray/access.log"
-shadowsocks_error_log="/var/log/v2ray/error.log"
+shadowsocks_access_log="/var/log/shadowsocks/access.log"
+shadowsocks_error_log="/var/log/shadowsocks/error.log"
 cert_dir="/usr/local/etc/shadowsocks"
 domain_tmp_dir="/usr/local/etc/shadowsocks"
 cert_group="nobody"
@@ -418,39 +418,7 @@ server {
 }
 
 
-function modify_password() {
-   [ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
-  cat ${shadowsocks_conf_dir}/config.json | jq 'setpath(["password"];"'${UUID}'")' >${shadowsocks_conf_dir}/config_tmp.json
-  v2ray_tmp_config_file_check_and_use
-  judge "password  修改"
-}
 
-
-function modify_port() {
-  read -rp "请输入端口号(默认: 443): " PORT
-  [ -z "$PORT" ] && PORT="443"
-  if [[ $PORT -le 0 ]] || [[ $PORT -gt 65535 ]]; then
-    print_error "请输入 0-65535 之间的值"
-    exit 1
-  fi
-  port_exist_check $PORT
-  cat ${shadowsocks_conf_dir}/config.json | jq 'setpath(["server_port"];'${PORT}')' >${shadowsocks_conf_dir}/config_tmp.json
-  v2ray_tmp_config_file_check_and_use
-  judge "shadowsocks 端口 修改"
-}
-
-function modify_method() {
-  read -rp "请输入 shadowsocks_method: " shadowsocks_method
-  cat ${shadowsocks_conf_dir}/config.json | jq 'setpath(["method"];"'${shadowsocks_method}'")' >${shadowsocks_conf_dir}/config_tmp.json
-  v2ray_tmp_config_file_check_and_use
-  judge "shadowsocks method 修改"
-}
-
-function configure_v2ray_ws() {
-  cd /usr/local/etc/shadowsocks && rm -f config.json && wget -O config.json ${github_repo}/${github_branch}/config/shadowsocks_conf.json
-  modify_password
-  modify_port
-}
 
 
 function v2ray_install() {
@@ -468,9 +436,9 @@ function ssl_install() {
   judge "安装 SSL 证书生成脚本"
 }
 
+
 function acme() {
   "$HOME"/.acme.sh/acme.sh --set-default-ca --server letsencrypt
-
   sed -i "6s/^/#/" "$nginx_conf"
   sed -i "6a\\\troot $website_dir;" "$nginx_conf"
   systemctl restart nginx
@@ -511,8 +479,8 @@ function acme() {
   sed -i "6s/#//" "$nginx_conf"
 }
 
-function ssl_judge_and_install() {
 
+function ssl_judge_and_install() {
   mkdir -p /ssl >/dev/null 2>&1
   if [[ -f "/ssl/v2ray.key" || -f "/ssl/v2ray.crt" ]]; then
     print_ok "/ssl 目录下证书文件已存在"
@@ -614,7 +582,7 @@ get_latest_ver(){
 # Installation of shadowsocks-rust
 install_ss(){
     if [ -f /usr/local/bin/ssserver ];then
-        print_error "Shadowsocks-libev already installed, skip."
+        print_error "Shadowsocks-rust already installed, skip."
     else
         if [ ! -f $ss_file ];then
             ss_url=$(wget -qO- https://api.github.com/repos/shadowsocks/shadowsocks-rust/releases/latest | grep x86_64-unknown-linux-musl.tar.xz | grep browser_download_url | cut -f4 -d\" | head -1)
@@ -653,7 +621,41 @@ install_v2ray_plugin(){
 }
 
 
-ss_conf(){
+function modify_password() {
+   [ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
+  cat ${shadowsocks_conf_dir}/config.json | jq 'setpath(["password"];"'${UUID}'")' >${shadowsocks_conf_dir}/config_tmp.json
+  v2ray_tmp_config_file_check_and_use
+  judge "password  修改"
+}
+
+
+function modify_port() {
+  read -rp "请输入端口号(默认: 443): " PORT
+  [ -z "$PORT" ] && PORT="443"
+  if [[ $PORT -le 0 ]] || [[ $PORT -gt 65535 ]]; then
+    print_error "请输入 0-65535 之间的值"
+    exit 1
+  fi
+  port_exist_check $PORT
+  cat ${shadowsocks_conf_dir}/config.json | jq 'setpath(["server_port"];'${PORT}')' >${shadowsocks_conf_dir}/config_tmp.json
+  v2ray_tmp_config_file_check_and_use
+  judge "shadowsocks 端口 修改"
+}
+
+function modify_method() {
+  read -rp "请输入 shadowsocks_method: " shadowsocks_method
+  cat ${shadowsocks_conf_dir}/config.json | jq 'setpath(["method"];"'${shadowsocks_method}'")' >${shadowsocks_conf_dir}/config_tmp.json
+  v2ray_tmp_config_file_check_and_use
+  judge "shadowsocks method 修改"
+}
+
+function configure_v2ray_ws() {
+  cd /usr/local/etc/shadowsocks && rm -f config.json && wget -O config.json ${github_repo}/${github_branch}/config/shadowsocks_conf.json
+  modify_password
+  modify_port
+}
+
+configure_shadowsocks(){
     shadowsocks_pwd="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
     mkdir -p /etc/shadowsocks
     cat >/usr/local/etc/shadowsocks/config.json << EOF
@@ -748,6 +750,7 @@ function install_ss_v2ray_plugin() {
   get_latest_ver
   install_ss
   install_v2ray_plugin
+  configure_shadowsocks
   nginx_install
   configure_nginx
   configure_web
