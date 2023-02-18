@@ -154,25 +154,6 @@ function dependency_install() {
     judge "安装 lsof tar"
   fi
 
-  if [[ "${ID}" == "centos" || "${ID}" == "ol" ]]; then
-    ${INS} crontabs
-  else
-    ${INS} cron
-  fi
-  judge "安装 crontab"
-
-  if [[ "${ID}" == "centos" || "${ID}" == "ol" ]]; then
-    touch /var/spool/cron/root && chmod 600 /var/spool/cron/root
-    systemctl start crond && systemctl enable crond
-  else
-    touch /var/spool/cron/crontabs/root && chmod 600 /var/spool/cron/crontabs/root
-    systemctl start cron && systemctl enable cron
-
-  fi
-  judge "crontab 自启动配置 "
-
-
-
   if ! command -v unzip; then
     ${INS} unzip
     judge "安装 unzip"
@@ -184,8 +165,10 @@ function dependency_install() {
   fi
 
   # upgrade systemd
-  ${INS} systemd
-  judge "安装/升级 systemd"
+  if ! command -v systemd; then
+    ${INS} systemd
+    judge "安装/升级 systemd"
+  fi
 
   # Nginx 后置 无需编译 不再需要
   #  if [[ "${ID}" == "centos" ||  "${ID}" == "ol" ]]; then
@@ -289,6 +272,7 @@ function port_exist_check() {
     sleep 1
   fi
 }
+
 function update_sh() {
   ol_version=$(curl -L -s ${github_repo}/${github_branch}/v2ray-sock.sh | grep "shell_version=" | head -1 | awk -F '=|"' '{print $3}')
   if [[ "$shell_version" != "$(echo -e "$shell_version\n$ol_version" | sort -rV | head -1)" ]]; then
@@ -515,6 +499,7 @@ function ssl_judge_and_install() {
 }
 
 function generate_certificate() {
+  if 
   if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
     signedcert=$(v2ray tls cert -domain="$local_ipv6" -name="$local_ipv6" -org="$local_ipv6" -expire=87600)
   else
@@ -656,6 +641,7 @@ function configure_v2ray_ws() {
 }
 
 configure_shadowsocks(){
+    modify_port
     shadowsocks_pwd="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
     mkdir -p /etc/shadowsocks
     cat >/usr/local/etc/shadowsocks/config.json << EOF
