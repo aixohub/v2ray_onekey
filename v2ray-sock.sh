@@ -3,8 +3,8 @@
 #====================================================
 #	System Request:Debian 9+/Ubuntu 18.04+/Centos 7+
 #	Author:	aixohub
-#	Dscription: V2ray onekey Management
-#	email: admin@aixohub.com
+#	Dscription: shadowsocks Management
+#	email: shadowsocks@aixohub.com
 #====================================================
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -30,12 +30,12 @@ ERROR="${Red}[ERROR]${Font}"
 shell_version="1.3.11"
 github_repo="https://raw.githubusercontent.com/aixohub/v2ray_onekey"
 github_branch="main"
-v2ray_conf_dir="/usr/local/etc/v2ray"
+shadowsocks_conf_dir="/usr/local/etc/shadowsocks"
 website_dir="/www/v2ray_web/"
-v2ray_access_log="/var/log/v2ray/access.log"
-v2ray_error_log="/var/log/v2ray/error.log"
-cert_dir="/usr/local/etc/v2ray"
-domain_tmp_dir="/usr/local/etc/v2ray"
+shadowsocks_access_log="/var/log/v2ray/access.log"
+shadowsocks_error_log="/var/log/v2ray/error.log"
+cert_dir="/usr/local/etc/shadowsocks"
+domain_tmp_dir="/usr/local/etc/shadowsocks"
 cert_group="nobody"
 random_num=$((RANDOM % 12 + 4))
 
@@ -43,17 +43,7 @@ VERSION=$(echo "${VERSION}" | awk -F "[()]" '{print $2}')
 WS_PATH="/$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
 WS_PATH_WITHOUT_SLASH=$(echo $WS_PATH | tr -d '/')
 
-function shell_mode_check() {
-  if [ -f ${v2ray_conf_dir}/config.json ]; then
-    if [ "$(grep -c "wsSettings" ${v2ray_conf_dir}/config.json)" -ge 1 ]; then
-      shell_mode="ws"
-    else
-      shell_mode="tcp"
-    fi
-  else
-    shell_mode="None"
-  fi
-}
+
 function print_ok() {
   echo -e "${OK} ${Blue} $1 ${Font}"
 }
@@ -300,13 +290,13 @@ function port_exist_check() {
   fi
 }
 function update_sh() {
-  ol_version=$(curl -L -s ${github_repo}/${github_branch}/v2ray-ws.sh | grep "shell_version=" | head -1 | awk -F '=|"' '{print $3}')
+  ol_version=$(curl -L -s ${github_repo}/${github_branch}/v2ray-sock.sh | grep "shell_version=" | head -1 | awk -F '=|"' '{print $3}')
   if [[ "$shell_version" != "$(echo -e "$shell_version\n$ol_version" | sort -rV | head -1)" ]]; then
     print_ok "存在新版本，是否更新 [Y/N]?"
     read -r update_confirm
     case $update_confirm in
     [yY][eE][sS] | [yY])
-      wget -N --no-check-certificate ${github_repo}/${github_branch}/install.sh
+      wget -N --no-check-certificate ${github_repo}/${github_branch}/v2ray-sock.sh
       print_ok "更新完成"
       print_ok "您可以通过 bash $0 执行本程序"
       exit 0
@@ -320,28 +310,15 @@ function update_sh() {
 }
 
 function v2ray_tmp_config_file_check_and_use() {
-  if [[ -s ${v2ray_conf_dir}/config_tmp.json ]]; then
-    mv -f ${v2ray_conf_dir}/config_tmp.json ${v2ray_conf_dir}/config.json
+  if [[ -s ${shadowsocks_conf_dir}/config_tmp.json ]]; then
+    mv -f ${shadowsocks_conf_dir}/config_tmp.json ${shadowsocks_conf_dir}/config.json
   else
     print_error "v2ray 配置文件修改异常"
   fi
 }
 
 
-function modify_password() {
-   [ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
-  cat ${v2ray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"settings","password"];"'${UUID}'")' >${v2ray_conf_dir}/config_tmp.json
-  v2ray_tmp_config_file_check_and_use
-  judge "V2ray ws UUID 修改"
-}
 
-
-
-function modify_ws() {
-  cat ${v2ray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"streamSettings","wsSettings","path"];"'${WS_PATH}'")' >${v2ray_conf_dir}/config_tmp.json
-  v2ray_tmp_config_file_check_and_use
-  judge "V2ray ws path 修改"
-}
 
 function configure_nginx() {
   nginx_conf="/etc/nginx/conf.d/${domain}.conf"
@@ -354,23 +331,6 @@ server {
   return 301 https://\$http_host\$request_uri;
   access_log  /dev/null;
   error_log  /dev/null;
-
-  location  ${WS_PATH} { # 与 V2Ray 配置中的 path 保持一致
-    if (\$http_upgrade != \"websocket\") { # WebSocket协商失败时返回404
-        return 404;
-    }
-    proxy_redirect off;
-    proxy_pass http://127.0.0.1:${PORT};
-    proxy_http_version 1.1;
-    proxy_read_timeout 300s;
-    proxy_connect_timeout 75s;
-    proxy_set_header Upgrade \$http_upgrade;
-    proxy_set_header Connection \"upgrade\";
-    proxy_set_header Host \$host;
-    # Show real IP in v2ray access.log
-    proxy_set_header X-Real-IP \$remote_addr;
-    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-  }
 
 }" > ${domain}.conf
 
@@ -398,8 +358,6 @@ upstream websocket {
     server localhost:${PORT};
 }
 
-
-
 server {
   listen 80;
   listen [::]:80;
@@ -407,17 +365,6 @@ server {
   return 301 https://\$http_host\$request_uri;
   access_log  /dev/null;
   error_log  /dev/null;
-
-  location ${WS_PATH} {
-            proxy_pass http://websocket${WS_PATH};
-            proxy_set_header Host \$http_host;
-            proxy_set_header X-Real_IP \$remote_addr;
-            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade \$http_upgrade;
-            proxy_set_header Connection \$connection_upgrade;
-  }
 }
 
  server {
@@ -470,6 +417,15 @@ server {
   systemctl restart nginx
 }
 
+
+function modify_password() {
+   [ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
+  cat ${shadowsocks_conf_dir}/config.json | jq 'setpath(["password"];"'${UUID}'")' >${shadowsocks_conf_dir}/config_tmp.json
+  v2ray_tmp_config_file_check_and_use
+  judge "password  修改"
+}
+
+
 function modify_port() {
   read -rp "请输入端口号(默认: 443): " PORT
   [ -z "$PORT" ] && PORT="443"
@@ -478,17 +434,22 @@ function modify_port() {
     exit 1
   fi
   port_exist_check $PORT
-  cat ${v2ray_conf_dir}/config.json | jq 'setpath(["inbounds",0,"port"];'${PORT}')' >${v2ray_conf_dir}/config_tmp.json
+  cat ${shadowsocks_conf_dir}/config.json | jq 'setpath(["server_port"];'${PORT}')' >${shadowsocks_conf_dir}/config_tmp.json
   v2ray_tmp_config_file_check_and_use
-  judge "V2ray 端口 修改"
+  judge "shadowsocks 端口 修改"
 }
 
+function modify_method() {
+  read -rp "请输入 shadowsocks_method: " shadowsocks_method
+  cat ${shadowsocks_conf_dir}/config.json | jq 'setpath(["method"];"'${shadowsocks_method}'")' >${shadowsocks_conf_dir}/config_tmp.json
+  v2ray_tmp_config_file_check_and_use
+  judge "shadowsocks method 修改"
+}
 
 function configure_v2ray_ws() {
-  cd /usr/local/etc/v2ray && rm -f config.json && wget -O config.json ${github_repo}/${github_branch}/config/v2ray_ss_server.json
+  cd /usr/local/etc/shadowsocks && rm -f config.json && wget -O config.json ${github_repo}/${github_branch}/config/shadowsocks_conf.json
   modify_password
   modify_port
-  modify_ws
 }
 
 
@@ -616,8 +577,6 @@ function configure_web() {
 }
 
 function v2ray_uninstall() {
-  curl -L https://github.com/XTLS/V2ray-install/raw/main/install-release.sh | bash -s -- remove --purge
-  rm -rf $website_dir
   print_ok "是否卸载nginx [Y/N]?"
   read -r uninstall_nginx
   case $uninstall_nginx in
@@ -676,7 +635,7 @@ install_ss(){
 # Installation of v2ray-plugin
 install_v2ray_plugin(){
     if [ -f /usr/local/bin/v2ray-plugin ];then
-        echo "\033[1;32mv2ray-plugin already installed, skip.\033[0m"
+        echo "\033[1;32m v2ray-plugin already installed, skip.\033[0m"
     else
         if [ ! -f $v2_file ];then
             v2_url=$(wget -qO- https://api.github.com/repos/shadowsocks/v2ray-plugin/releases/latest | grep linux-amd64 | grep browser_download_url | cut -f4 -d\")
@@ -694,24 +653,24 @@ install_v2ray_plugin(){
 
 ss_conf(){
     shadowsocks_pwd="$(head -n 10 /dev/urandom | md5sum | head -c ${random_num})"
-    mkdir -p /etc/shadowsocks-rust
-    cat >/etc/shadowsocks-rust/config.json << EOF
+    mkdir -p /etc/shadowsocks
+    cat >/usr/local/etc/shadowsocks/config.json << EOF
 {
     "server":"0.0.0.0",
     "server_port":$PORT,
     "password":"$shadowsocks_pwd",
     "timeout":300,
-    "method":"aes-256-gcm",
+    "method":"chacha20-ietf-poly1305",
     "plugin":"v2ray-plugin",
-    "plugin_opts":"server;path=$WS_PATH;loglevel=none"
+    "plugin_opts":"server;path=$WS_PATH;host=$domain;loglevel=info"
 }
 EOF
     cat >/lib/systemd/system/shadowsocks.service << EOF
 [Unit]
-Description=Shadowsocks-libev Server Service
+Description=Shadowsocks-rust Server Service
 After=network.target
 [Service]
-ExecStart=/usr/local/bin/ss-server -c /etc/shadowsocks-rust/config.json
+ExecStart=/usr/local/bin/ss-server -c /usr/local/etc/shadowsocks/config.json
 ExecReload=/bin/kill -HUP \$MAINPID
 Restart=on-failure
 [Install]
@@ -723,60 +682,39 @@ function restart_shadowsocks() {
   systemctl restart nginx
   judge "Nginx 启动"
   systemctl restart shadowsocks
-  judge "V2ray 启动"
+  judge "shadowsocks 启动"
 }
 
 function restart_all() {
   systemctl restart nginx
   judge "Nginx 启动"
-  systemctl restart v2ray
-  judge "V2ray 启动"
+  systemctl restart shadowsocks
+  judge "shadowsocks 启动"
 }
 
 
 
 function ws_information() {
-  UUID=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-  UUID=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-  PORT=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].port)
-  NET_WORK=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].streamSettings.network | tr -d '"')
-  SECURITY=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].streamSettings.security | tr -d '"')
+  SERVER=$(cat ${shadowsocks_conf_dir}/config.json | jq .server | tr -d '"')
+  SERVER_PORT=$(cat ${shadowsocks_conf_dir}/config.json | jq .server_port)
+  NET_WORK=$(cat ${shadowsocks_conf_dir}/config.json | jq .password | tr -d '"')
+  SECURITY=$(cat ${shadowsocks_conf_dir}/config.json | jq .method | tr -d '"')
   DOMAIN=$(cat ${domain_tmp_dir}/domain)
 
-  echo -e "${Red} V2ray 配置信息 ${Font}"
-  echo -e "${Red} 地址(address):${Font}  $DOMAIN"
-  echo -e "${Red} 端口(port): ${Font}  $PORT"
-  echo -e "${Red} 用户 ID(UUID): ${Font} $UUID"
-  echo -e "${Red} 加密方式(security): ${Font} $SECURITY "
-  echo -e "${Red} 传输协议(network): ${Font} $NET_WORK "
-  echo -e "${Red} 伪装类型(type): ${Font} none "
-  echo -e "${Red} 路径(path): ${Font} $WS_PATH "
-  echo -e "${Red} 底层传输安全: ${Font} tls "
+  echo -e "${Red} shadowsocks 配置信息 ${Font}"
+  echo -e "${Red} 地址(address):${Font}  $SERVER"
+  echo -e "${Red} 端口(port): ${Font}  $SERVER_PORT"
+  echo -e "${Red} 地址(password):${Font}  $NET_WORK"
+  echo -e "${Red} 端口(method): ${Font}  $SECURITY"
 }
 
-function ws_link() {
-  UUID=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].id | tr -d '"')
-  PORT=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].port)
-  FLOW=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].settings.clients[0].flow | tr -d '"')
-  NET_WORK=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].streamSettings.network | tr -d '"')
-  SECURITY=$(cat ${v2ray_conf_dir}/config.json | jq .inbounds[0].streamSettings.security | tr -d '"')
-  DOMAIN=$(cat ${domain_tmp_dir}/domain)
 
-
-  print_ok "URL 链接 (VLESS + WebSocket + TLS)"
-  print_ok "vless://$UUID@$DOMAIN:$PORT?type=ws&security=tls&path=%2f${WS_PATH_WITHOUT_SLASH}%2f#WS_TLS_aixohub-$DOMAIN"
-  print_ok "-------------------------------------------------"
-
-  print_ok "URL 二维码 (VLESS + WebSocket + TLS) (请在浏览器中访问)"
-  print_ok "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=vless://$UUID@$DOMAIN:$PORT?type=ws%26security=tls%26path=%2f${WS_PATH}%2f%23WS_TLS_aixohub-$DOMAIN-$PORT"
-}
 
 
 function basic_ws_information() {
-  print_ok "VLESS+TCP+TLS+Nginx with WebSocket 混合模式 安装成功"
+  print_ok "shadowsocks 混合模式 安装成功"
   ws_information
   print_ok "————————————————————————"
-  ws_link
 }
 
 function basic_ss_information() {
@@ -785,11 +723,11 @@ function basic_ss_information() {
 }
 
 function show_access_log() {
-  [ -f ${v2ray_access_log} ] && tail -f ${v2ray_access_log} || echo -e "${RedBG}log 文件不存在${Font}"
+  [ -f ${shadowsocks_access_log} ] && tail -f ${shadowsocks_access_log} || echo -e "${RedBG}log 文件不存在${Font}"
 }
 
 function show_error_log() {
-  [ -f ${v2ray_error_log} ] && tail -f ${v2ray_error_log} || echo -e "${RedBG}log 文件不存在${Font}"
+  [ -f ${shadowsocks_error_log} ] && tail -f ${shadowsocks_error_log} || echo -e "${RedBG}log 文件不存在${Font}"
 }
 
 function bbr_boost_sh() {
@@ -797,26 +735,6 @@ function bbr_boost_sh() {
   wget -N --no-check-certificate "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh
 }
 
-
-
-function install_v2ray_ws() {
-  is_root
-  system_check
-  dependency_install
-  basic_optimization
-  domain_check
-  port_exist_check 80
-  v2ray_install
-  configure_v2ray_ws
-  nginx_install
-  configure_nginx
-  configure_web
-  generate_certificate
-  ssl_judge_and_install
-  configure_nginx_ws
-  restart_all
-  basic_ws_information
-}
 
 function install_ss_v2ray_plugin() {
   is_root
@@ -849,12 +767,11 @@ menu() {
   echo -e "当前已安装版本: ${shell_mode}"
   echo -e "—————————————— 安装向导 ——————————————"""
   echo -e "${Green}0.${Font}  升级 脚本"
-  echo -e "${Green}1.${Font}  安装 ss "
   echo -e "${Green}1.${Font}  安装 V2ray ws"
   echo -e "—————————————— 配置变更 ——————————————"
   echo -e "${Green}11.${Font} 变更 UUID"
   echo -e "${Green}13.${Font} 变更 连接端口"
-  echo -e "${Green}14.${Font} 变更 PATH"
+  echo -e "${Green}14.${Font} 变更 METHOD"
   echo -e "—————————————— 查看信息 ——————————————"
   echo -e "${Green}21.${Font} 查看 实时访问日志"
   echo -e "${Green}22.${Font} 查看 实时错误日志"
@@ -862,8 +779,6 @@ menu() {
   #    echo -e "${Green}23.${Font}  查看 V2Ray 配置信息"
   echo -e "—————————————— 其他选项 ——————————————"
   echo -e "${Green}31.${Font} 安装 4 合 1 BBR、锐速安装脚本"
-  echo -e "${Green}33.${Font} 卸载 V2ray"
-  echo -e "${Green}34.${Font} 更新 V2ray-core"
   echo -e "${Green}36.${Font} 手动更新 SSL 证书"
   echo -e "${Green}40.${Font} 退出"
   read -rp "请输入数字: " menu_num
@@ -873,12 +788,6 @@ menu() {
     ;;
   1)
     install_ss_v2ray_plugin
-    ;;
-  2)
-    install_v2ray_ws
-    ;;
-  3)
-    install_v2ray_quic
     ;;
   11)
     read -rp "请输入 UUID:" UUID
@@ -890,22 +799,17 @@ menu() {
     restart_all
     ;;
   14)
-    if [[ ${shell_mode} == "ws" ]]; then
-      read -rp "请输入路径(示例: /aixohub/ 要求两侧都包含 /):" WS_PATH
-      modify_ws
-      restart_all
-    else
-      print_error "当前模式不是 Websocket 模式"
-    fi
+    modify_method
+    restart_all
     ;;
   21)
-    tail -f $v2ray_access_log
+    tail -f $shadowsocks_access_log
     ;;
   22)
-    tail -f $v2ray_error_log
+    tail -f $shadowsocks_error_log
     ;;
   23)
-    if [[ -f $v2ray_conf_dir/config.json ]]; then
+    if [[ -f $shadowsocks_conf_dir/config.json ]]; then
       if [[ ${shell_mode} == "tcp" ]]; then
         basic_information
       elif [[ ${shell_mode} == "ws" ]]; then
@@ -921,14 +825,6 @@ menu() {
   33)
     source '/etc/os-release'
     v2ray_uninstall
-    ;;
-  34)
-    bash -c "$(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)" - install
-    restart_all
-    ;;
-  35)
-    bash -c "$(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)" - install --beta
-    restart_all
     ;;
   36)
     "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh"
