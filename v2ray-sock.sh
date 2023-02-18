@@ -499,7 +499,11 @@ function ssl_judge_and_install() {
 }
 
 function generate_certificate() {
-  if 
+  if [[ -f ${cert_dir} ]]; then
+    print_ok "${cert_dir} 已存在"
+  else
+    mkdir -p ${cert_dir}
+  fi
   if [[ -z ${local_ipv4} && -n ${local_ipv6} ]]; then
     signedcert=$(v2ray tls cert -domain="$local_ipv6" -name="$local_ipv6" -org="$local_ipv6" -expire=87600)
   else
@@ -732,6 +736,7 @@ function install_ss_v2ray_plugin() {
   dependency_install
   basic_optimization
   domain_check
+  v2ray_install
   port_exist_check 80
   get_latest_ver
   install_ss
