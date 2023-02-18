@@ -672,7 +672,7 @@ EOF
 Description=Shadowsocks-rust Server Service
 After=network.target
 [Service]
-ExecStart=/usr/local/bin/ss-server -c /usr/local/etc/shadowsocks/config.json
+ExecStart=/usr/local/bin/ssserver -c /usr/local/etc/shadowsocks/config.json
 ExecReload=/bin/kill -HUP \$MAINPID
 Restart=on-failure
 [Install]
