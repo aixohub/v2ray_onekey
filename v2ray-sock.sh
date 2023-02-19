@@ -655,13 +655,13 @@ configure_shadowsocks(){
     mkdir -p /etc/shadowsocks
     cat >/usr/local/etc/shadowsocks/config.json << EOF
 {
-    "server":"0.0.0.0",
+    "server":"$local_ipv4",
     "server_port":$PORT,
     "password":"$shadowsocks_pwd",
     "timeout":300,
     "method":"chacha20-ietf-poly1305",
     "plugin":"v2ray-plugin",
-    "plugin_opts":"server;path=$WS_PATH;host=$domain;loglevel=info"
+    "plugin_opts":"server;host=$domain;loglevel=info"
 }
 EOF
     cat >/lib/systemd/system/shadowsocks.service << EOF
@@ -804,7 +804,7 @@ menu() {
     restart_all
     ;;
   21)
-    tail -f $shadowsocks_access_log
+    journalctl -u shadowsocks.service
     ;;
   22)
     tail -f $shadowsocks_error_log
