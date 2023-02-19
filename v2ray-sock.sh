@@ -308,7 +308,26 @@ function shadowsocks_tmp_config_file_check_and_use() {
   fi
 }
 
-
+function configure_web() {
+  rm -rf /etc/www/web
+  mkdir -p /etc/www/web
+  print_ok "是否配置伪装网页？[Y/N]"
+  read -r webpage
+  case $webpage in
+  [yY][eE][sS] | [yY])
+    if ! command -v hugo; then
+      ${INS} hugo
+      judge "安装 hugo"
+    fi
+    git clone https://github.com/rootsongjc/cloud-native-library.git
+    cd cloud-native-library
+    hugo
+    mv public/  /etc/www/web/
+    judge "站点伪装"
+    ;;
+  *) ;;
+  esac
+}
 
 
 function configure_nginx() {
@@ -527,21 +546,7 @@ function generate_certificate() {
   chown nobody.$cert_group $cert_dir/self_signed_key.pem
 }
 
-function configure_web() {
-  rm -rf /www/v2ray_web
-  mkdir -p /www/v2ray_web
-  print_ok "是否配置伪装网页？[Y/N]"
-  read -r webpage
-  case $webpage in
-  [yY][eE][sS] | [yY])
-    wget -O web.tar.gz ${github_repo}/main/basic/web.tar.gz
-    tar xzf web.tar.gz -C /www/v2ray_web
-    judge "站点伪装"
-    rm -f web.tar.gz
-    ;;
-  *) ;;
-  esac
-}
+
 
 function v2ray_uninstall() {
   print_ok "是否卸载nginx [Y/N]?"
