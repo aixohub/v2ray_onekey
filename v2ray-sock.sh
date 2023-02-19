@@ -771,7 +771,7 @@ function install_ss_v2ray_plugin() {
 menu() {
   update_sh
   shell_mode = 'shadowsocks'
-  echo -e "\t ss V2ray 安装管理脚本 ${Red}[${shell_version}]${Font}"
+  echo -e "\t ss shadowsocks 安装管理脚本 ${Red}[${shell_version}]${Font}"
   echo -e "\t---authored by aixohub---"
   echo -e "\thttps://github.com/aixohub\n"
 
