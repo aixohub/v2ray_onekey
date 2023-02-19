@@ -29,6 +29,7 @@ ERROR="${Red}[ERROR]${Font}"
 # 变量
 shell_version="1.3.11"
 github_repo="https://raw.githubusercontent.com/aixohub/v2ray_onekey"
+web_github_repo="https://raw.githubusercontent.com/aixohub/v2ray_onekey"
 github_branch="main"
 shadowsocks_conf_dir="/usr/local/etc/shadowsocks"
 website_dir="/www/v2ray_web/"
@@ -148,6 +149,7 @@ function nginx_install() {
   # 遗留问题处理
   mkdir -p /etc/nginx/conf.d >/dev/null 2>&1
 }
+
 function dependency_install() {
   if ! command -v lsof; then
     ${INS} lsof tar
@@ -162,6 +164,11 @@ function dependency_install() {
   if ! command -v curl; then
     ${INS} curl
     judge "安装 curl"
+  fi
+
+  if ! command -v vim; then
+    ${INS} vim
+    judge "安装 vim"
   fi
 
   # upgrade systemd
@@ -293,11 +300,11 @@ function update_sh() {
   fi
 }
 
-function v2ray_tmp_config_file_check_and_use() {
+function shadowsocks_tmp_config_file_check_and_use() {
   if [[ -s ${shadowsocks_conf_dir}/config_tmp.json ]]; then
     mv -f ${shadowsocks_conf_dir}/config_tmp.json ${shadowsocks_conf_dir}/config.json
   else
-    print_error "v2ray 配置文件修改异常"
+    print_error "shadowsocks 配置文件修改异常"
   fi
 }
 
@@ -400,8 +407,6 @@ server {
   systemctl enable nginx
   systemctl restart nginx
 }
-
-
 
 
 
@@ -618,7 +623,7 @@ install_v2ray_plugin(){
 function modify_password() {
    [ -z "$UUID" ] && UUID=$(cat /proc/sys/kernel/random/uuid)
   cat ${shadowsocks_conf_dir}/config.json | jq 'setpath(["password"];"'${UUID}'")' >${shadowsocks_conf_dir}/config_tmp.json
-  v2ray_tmp_config_file_check_and_use
+  shadowsocks_tmp_config_file_check_and_use
   judge "password  修改"
 }
 
@@ -632,14 +637,14 @@ function modify_port() {
   fi
   port_exist_check $PORT
   cat ${shadowsocks_conf_dir}/config.json | jq 'setpath(["server_port"];'${PORT}')' >${shadowsocks_conf_dir}/config_tmp.json
-  v2ray_tmp_config_file_check_and_use
+  shadowsocks_tmp_config_file_check_and_use
   judge "shadowsocks 端口 修改"
 }
 
 function modify_method() {
   read -rp "请输入 shadowsocks_method: " shadowsocks_method
   cat ${shadowsocks_conf_dir}/config.json | jq 'setpath(["method"];"'${shadowsocks_method}'")' >${shadowsocks_conf_dir}/config_tmp.json
-  v2ray_tmp_config_file_check_and_use
+  shadowsocks_tmp_config_file_check_and_use
   judge "shadowsocks method 修改"
 }
 
@@ -669,7 +674,7 @@ EOF
 Description=Shadowsocks-rust Server Service
 After=network.target
 [Service]
-ExecStart=/usr/local/bin/ssserver -c /usr/local/etc/shadowsocks/config.json --log-file /usr/local/etc/shadowsocks/info.log  start
+ExecStart=/usr/local/bin/ssserver -c /usr/local/etc/shadowsocks/config.json 
 ExecReload=/bin/kill -HUP \$MAINPID
 Restart=on-failure
 [Install]
@@ -718,7 +723,7 @@ function basic_ws_information() {
 
 function basic_ss_information() {
   print_ok "shadowsocks 安装成功"
-  cat /etc/shadowsocks-rust/config.json
+  cat ${shadowsocks_conf_dir}/config.json
 }
 
 function show_access_log() {
@@ -760,7 +765,7 @@ function install_ss_v2ray_plugin() {
 
 menu() {
   update_sh
-  shell_mode_check
+  shell_mode = 'shadowsocks'
   echo -e "\t ss V2ray 安装管理脚本 ${Red}[${shell_version}]${Font}"
   echo -e "\t---authored by aixohub---"
   echo -e "\thttps://github.com/aixohub\n"
