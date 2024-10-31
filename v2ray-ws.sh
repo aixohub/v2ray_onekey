@@ -186,10 +186,14 @@ function dependency_install() {
   judge "crontab 自启动配置 "
 
 
-
   if ! command -v unzip; then
     ${INS} unzip
     judge "安装 unzip"
+  fi
+
+  if ! command -v vim; then
+    ${INS} vim
+    judge "安装 vim"
   fi
 
   if ! command -v curl; then
