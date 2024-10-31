@@ -168,14 +168,14 @@ function dependency_install() {
     judge "安装 lsof tar"
   fi
 
-  if [[ "${ID}" == "centos" || "${ID}" == "ol" ]]; then
+  if [[ "${ID}" == "centos" || "${ID}" == "ol" || "${ID}" == "rocky" ]]; then
     ${INS} crontabs
   else
     ${INS} cron
   fi
   judge "安装 crontab"
 
-  if [[ "${ID}" == "centos" || "${ID}" == "ol" ]]; then
+  if [[ "${ID}" == "centos" || "${ID}" == "ol" || "${ID}" == "rocky" ]]; then
     touch /var/spool/cron/root && chmod 600 /var/spool/cron/root
     systemctl start crond && systemctl enable crond
   else
@@ -209,7 +209,7 @@ function dependency_install() {
   #  fi
   #  judge "编译工具包 安装"
 
-  if [[ "${ID}" == "centos" ]]; then
+  if [[ "${ID}" == "centos" || "${ID}" == "rocky" ]]; then
     ${INS} pcre pcre-devel zlib-devel epel-release openssl openssl-devel
   elif [[ "${ID}" == "ol" ]]; then
     ${INS} pcre pcre-devel zlib-devel openssl openssl-devel
@@ -239,7 +239,7 @@ function basic_optimization() {
   echo '* hard nofile 65536' >>/etc/security/limits.conf
 
   # RedHat 系发行版关闭 SELinux
-  if [[ "${ID}" == "centos" || "${ID}" == "ol" ]]; then
+  if [[ "${ID}" == "centos" || "${ID}" == "ol" || "${ID}" == "rocky" ]]; then
     sed -i 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
     setenforce 0
   fi
@@ -639,6 +639,8 @@ function v2ray_uninstall() {
   [yY][eE][sS] | [yY])
     if [[ "${ID}" == "centos" || "${ID}" == "ol" ]]; then
       yum remove nginx -y
+    elif [[ "${ID}" == "rocky" ]]; then
+      dnf remove nginx -y
     else
       apt purge nginx -y
     fi
