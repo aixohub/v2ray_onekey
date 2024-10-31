@@ -196,6 +196,11 @@ function dependency_install() {
     judge "安装 vim"
   fi
 
+   if ! command -v git; then
+    ${INS} git
+    judge "安装 git"
+  fi
+
   if ! command -v curl; then
     ${INS} curl
     judge "安装 curl"
@@ -445,7 +450,7 @@ server {
   
 
   location / {
-        root   html;
+        root   /usr/local/html/paipan;
         index  index.html index.htm;
   }
 
@@ -472,6 +477,16 @@ server {
     proxy_set_header X-Real-IP \$remote_addr;
     proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
   }
+
+  location /airflow/ {
+      proxy_pass http://localhost:8080;
+      proxy_set_header Host $http_host;
+      proxy_redirect off;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+  }
+
 }" > ${domain}.conf
 
   sed -i "s/xxx/${domain}/g" ${nginx_conf}
@@ -619,16 +634,15 @@ function generate_certificate() {
 }
 
 function configure_web() {
-  rm -rf /www/v2ray_web
-  mkdir -p /www/v2ray_web
+  rm -rf   /usr/local/html/paipan
+  mkdir -p /usr/local/html/paipan
   print_ok "是否配置伪装网页？[Y/N]"
   read -r webpage
   case $webpage in
   [yY][eE][sS] | [yY])
-    wget -O web.tar.gz ${github_repo}/main/basic/web.tar.gz
-    tar xzf web.tar.gz -C /www/v2ray_web
+    cd /usr/local/html
+    git clone https://gitee.com/paipan/paipan.git
     judge "站点伪装"
-    rm -f web.tar.gz
     ;;
   *) ;;
   esac
