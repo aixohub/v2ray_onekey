@@ -96,7 +96,29 @@ Nginx 目录： `/etc/nginx`
 证书文件： `/ssl/xray.key`（私钥）和 `/ssl/xray.crt`（证书公钥）
 
 
+```commandline
+ssh -L 8888:127.0.0.1:32400 10.0.0.12
 
+ssh-copy-id -i ~/.ssh/id_rsa.pub jupyter@10.0.0.12
+
+aria2c --conf-path=/home/jupyter/.config/aria2/aria2.config
+
+
+sudo mkdir -p /opt/plex/{movies,music,pictures,series}
+sudo chown -R plex: /opt/plex/{movies,music,pictures,series}
+
+
+[Unit]
+Description=Aria2 Service
+After=network.target
+
+[Service]
+User=jupyter
+ExecStart=/usr/bin/aria2c --conf-path=/home/jupyter/.config/aria2/aria2.config
+
+[Install]
+WantedBy=default.target
+```
 
 ## Stargazers over time
 

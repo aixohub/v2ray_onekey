@@ -95,6 +95,10 @@ function system_check() {
     print_ok "当前系统为 Oracle Linux ${VERSION_ID} ${VERSION}"
     INS="yum install -y"
     wget -N -P /etc/yum.repos.d/ ${github_repo}/${github_branch}/basic/nginx.repo
+  elif [[ "${ID}" == "rocky" ]]; then
+    print_ok "当前系统为 rocky Linux ${VERSION_ID} ${VERSION}"
+    INS="dnf install -y"
+    wget -N -P /etc/yum.repos.d/ ${github_repo}/${github_branch}/basic/nginx.repo
   elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 9 ]]; then
     print_ok "当前系统为 Debian ${VERSION_ID} ${VERSION}"
     INS="apt install -y"
