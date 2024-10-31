@@ -31,7 +31,10 @@ wget -N --no-check-certificate -q -O v2ray-tcp.sh "https://raw.githubusercontent
 
 wget -N --no-check-certificate -q -O v2ray.sh "https://raw.githubusercontent.com/233boy/v2ray/master/v2ray.sh"
 
+```
 
+
+```bash
 wget -N --no-check-certificate -q -O v2ray-ws.sh "https://raw.githubusercontent.com/aixohub/v2ray_onekey/main/v2ray-ws.sh" && chmod +x v2ray-ws.sh && bash v2ray-ws.sh
 ```
 
