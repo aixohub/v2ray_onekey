@@ -636,7 +636,7 @@ function configure_web() {
   case $webpage in
   [yY][eE][sS] | [yY])
     cd /usr/local/html
-    git clone https://gitee.com/paipan/paipan.git
+    git clone https://github.com/aixohub/paipan.git
     judge "站点伪装"
     ;;
   *) ;;
@@ -896,7 +896,7 @@ menu() {
     restart_all
     ;;
   36)
-    "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh"
+    "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" --force
     restart_all
     ;;
   40)
